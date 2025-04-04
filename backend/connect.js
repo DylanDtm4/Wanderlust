@@ -13,10 +13,15 @@ const client = new MongoClient(process.env.ATLAS_URI, {
 let database;
 
 module.exports = {
-  connectToServer: () => {
+  connectToServer: async () => {
+    await client.connect();
     database = client.db("userData");
+    console.log("MongoDB Connected Successfully");
   },
   getDb: () => {
+    if (!database) {
+      throw new Error("Database not initialized. Call connectToServer first.");
+    }
     return database;
   },
 };

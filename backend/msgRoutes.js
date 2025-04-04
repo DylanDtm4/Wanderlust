@@ -17,79 +17,142 @@ msgRoutes.route("/msgs").get(async (request, response) => {
 
 // #2 - Retrieve One
 msgRoutes.route("/msgs/:id").get(async (request, response) => {
-  let db = database.getDb();
-  let data = await db
-    .collection("msgs")
-    .findOne({ _id: new ObjectId(request.params.id) });
-  if (Object.keys(data).length > 0) {
+  try {
+    let db = database.getDb();
+    let msgId = request.params.id;
+
+    if (!ObjectId.isValid(msgId)) {
+      return response.status(400).json({ error: "Invalid message ID" });
+    }
+
+    let data = await db
+      .collection("msgs")
+      .findOne({ _id: new ObjectId(msgId) });
+
+    if (!data) {
+      return response.status(404).json({ error: "Message not found" });
+    }
+
     response.json(data);
-  } else {
-    response.status(404).json({ error: "Data not found" });
+  } catch (error) {
+    response.status(500).json({ error: "Internal Server Error" });
   }
 });
 
 // #3 - Create One
 msgRoutes.route("/msgs").post(async (request, response) => {
-  let db = database.getDb();
-  let mongoObject = {
-    chatID: request.body.chatID, // Which chat this message belongs to
-    senderID: request.body.senderID, // Who sent it
-    message: request.body.message, // Text content
-    timestamp: new Date(), // Store the current time
-    readBy: [], // Starts empty, filled when users read it
-    type: request.body.type || "text", // Defaults to "text"
-    attachments: request.body.attachments || [], // Any files/images/videos
-  };
-  let data = await db.collection("msgs").insertOne(mongoObject);
-  response.json(data);
+  try {
+    let db = database.getDb();
+    let { chatID, senderID, message, type, attachments } = request.body;
+
+    if (!chatID || !senderID || !message) {
+      return response.status(400).json({ error: "Missing required fields" });
+    }
+
+    let mongoObject = {
+      chatID,
+      senderID,
+      message,
+      timestamp: new Date(),
+      readBy: [],
+      type: type || "text",
+      attachments: attachments || [],
+    };
+
+    let data = await db.collection("msgs").insertOne(mongoObject);
+    response.status(201).json({ insertedId: data.insertedId, ...mongoObject });
+  } catch (error) {
+    console.error(error);
+    response.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // #4 - Update One Message (Edit message, update attachments)
 msgRoutes.route("/msgs/:id").put(async (request, response) => {
-  let db = database.getDb();
-  let updateFields = {};
+  try {
+    let db = database.getDb();
+    let msgId = request.params.id;
 
-  if (request.body.message) {
-    updateFields.message = request.body.message;
+    if (!ObjectId.isValid(msgId)) {
+      return response.status(400).json({ error: "Invalid message ID" });
+    }
+
+    let updateFields = {};
+    if (request.body.message) updateFields.message = request.body.message;
+    if (request.body.type) updateFields.type = request.body.type;
+    if (request.body.attachments)
+      updateFields.attachments = request.body.attachments;
+
+    if (Object.keys(updateFields).length === 0) {
+      return response
+        .status(400)
+        .json({ error: "No fields provided for update" });
+    }
+
+    let result = await db
+      .collection("msgs")
+      .updateOne({ _id: new ObjectId(msgId) }, { $set: updateFields });
+
+    if (result.matchedCount === 0) {
+      return response.status(404).json({ error: "Message not found" });
+    }
+
+    response.json({
+      modifiedCount: result.modifiedCount,
+      updatedFields: updateFields,
+    });
+  } catch (error) {
+    console.error(error);
+    response.status(500).json({ error: "Internal Server Error" });
   }
-
-  if (request.body.type) {
-    updateFields.type = request.body.type;
-  }
-
-  if (request.body.attachments) {
-    updateFields.attachments = request.body.attachments;
-  }
-
-  let data = await db
-    .collection("msgs")
-    .updateOne(
-      { _id: new ObjectId(request.params.id) },
-      { $set: updateFields }
-    );
-
-  response.json(data);
 });
 
 // #5 - Delete One
 msgRoutes.route("/msgs/:msgID").delete(async (request, response) => {
-  let db = database.getDb();
-  let data = await db
-    .collection("msgs")
-    .deleteOne({ _id: new ObjectId(request.params.msgID) });
-  response.json(data);
+  try {
+    let db = database.getDb();
+    let msgId = request.params.msgID;
+
+    if (!ObjectId.isValid(msgId)) {
+      return response.status(400).json({ error: "Invalid message ID" });
+    }
+
+    let result = await db
+      .collection("msgs")
+      .deleteOne({ _id: new ObjectId(msgId) });
+
+    if (result.deletedCount === 0) {
+      return response.status(404).json({ error: "Message not found" });
+    }
+
+    response.json({ success: true, deletedCount: result.deletedCount });
+  } catch (error) {
+    console.error(error);
+    response.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // #6 - Retrieve All (Messages from ONE chat)
 msgRoutes.route("/msgs/chat/:chatID").get(async (request, response) => {
-  let db = database.getDb();
-  let messages = await db
-    .collection("msgs")
-    .find({ chatID: request.params.chatID })
-    .sort({ timestamp: 1 }) // Oldest to newest
-    .toArray();
+  try {
+    let db = database.getDb();
+    let chatID = request.params.chatID;
 
-  response.json(messages);
+    if (!chatID) {
+      return response.status(400).json({ error: "Chat ID is required" });
+    }
+
+    let messages = await db
+      .collection("msgs")
+      .find({ chatID })
+      .sort({ timestamp: 1 })
+      .toArray();
+
+    response.json(messages);
+  } catch (error) {
+    console.error(error);
+    response.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // #7 - Update One (Mark messages as READ)
