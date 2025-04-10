@@ -15,6 +15,8 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
+console.log("API Key:", Constants.expoConfig.extra.firebaseApiKey);
+
 const app = initializeApp(firebaseConfig);
 const auth = initializeAuth(app, {
 	persistence: getReactNativePersistence(AsyncStorage),
