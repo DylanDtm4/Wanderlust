@@ -11,7 +11,7 @@ const SplashScreen = () => {
   const router = useRouter();
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.5);
-  const planePosition = new Animated.ValueXY({ x: -150, y: height / 3 });
+  const planePosition = new Animated.ValueXY({ x: -180, y: height / 3 });
 
   useEffect(() => {
     // Plane animation sequence
