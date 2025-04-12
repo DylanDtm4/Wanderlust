@@ -113,6 +113,7 @@ const Explore = () => {
         </View>
 
         {/* Spots Container */}
+        
         <ScrollView style={styles.spotsContainer}>
           {spots.map((spot) => (
             <View key={spot.id} style={styles.spotCard}>
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
   },
   mapImage: {
     width: 450,
-    height: 655,
+    height: 555,
   },
 
   spotsContainer: {

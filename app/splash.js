@@ -31,7 +31,7 @@ const SplashScreen = () => {
       // Fly to logo
       Animated.timing(planePosition, {
         toValue: { x: width / 25, y: height / 10 - 45 },
-        duration: 2500,
+        duration: 4000,
         useNativeDriver: true,
       })
     ]).start();
@@ -52,62 +52,57 @@ const SplashScreen = () => {
     ]).start();
 
     const timer = setTimeout(() => {
-      router.replace('/LoginScreen');
+      // No need to navigate here, the _layout will handle it
     }, 4000);
 
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <>
-     {/*shade options: Light blue:7CB9E8 Baby Blue:#89CFF0 Blue gray: #6699CC  blue yonder: #5072A7*/}
-      <Stack.Screen options={{ headerShown: false, gestureEnabled: false }} />
-      <LinearGradient
-        colors={['#ADD8E6', '#6699CC', '#ADD8E6']}
-       
-        style={styles.container}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+    <LinearGradient
+      colors={['#ADD8E6', '#6699CC', '#ADD8E6']}
+      style={styles.container}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <Animated.View
+        style={[
+          styles.planeContainer,
+          {
+            transform: [
+              { translateX: planePosition.x },
+              { translateY: planePosition.y },
+              { rotate: '45deg' }
+            ]
+          }
+        ]}
       >
-        <Animated.View
-          style={[
-            styles.planeContainer,
-            {
-              transform: [
-                { translateX: planePosition.x },
-                { translateY: planePosition.y },
-                { rotate: '45deg' }
-              ]
-            }
-          ]}
-        >
-          <Feather name="send" size={24} color="#FFFFFF" />
-        </Animated.View>
+        <Feather name="send" size={24} color="#FFFFFF" />
+      </Animated.View>
 
-        <Animated.View 
-          style={[
-            styles.logoContainer, 
-            { 
-              opacity: fadeAnim,
-              transform: [{ scale: scaleAnim }]
-            }
-          ]}
-        >
-          <MaterialCommunityIcons name="compass-rose" size={120} color="#FFFFFF" />
-          <View style={styles.circleOverlay} />
-        </Animated.View>
+      <Animated.View
+        style={[
+          styles.logoContainer,
+          {
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }]
+          }
+        ]}
+      >
+        <MaterialCommunityIcons name="compass-rose" size={120} color="#FFFFFF" />
+        <View style={styles.circleOverlay} />
+      </Animated.View>
 
-        <Animated.View style={[styles.textContainer, { opacity: fadeAnim }]}>
-          <Text style={styles.welcomeTo}>Welcome to</Text>
-          <Text style={styles.appTitle}>WanderLust</Text>
-          <Text style={styles.tagline}>Your Journey Begins Here</Text>
-        </Animated.View>
+      <Animated.View style={[styles.textContainer, { opacity: fadeAnim }]}>
+        <Text style={styles.welcomeTo}>Welcome to</Text>
+        <Text style={styles.appTitle}>WanderLust</Text>
+        <Text style={styles.tagline}>Your Journey Begins Here</Text>
+      </Animated.View>
 
-        <View style={styles.decorativeCircle1} />
-        <View style={styles.decorativeCircle2} />
-        <View style={styles.decorativeCircle3} />
-      </LinearGradient>
-    </>
+      <View style={styles.decorativeCircle1} />
+      <View style={styles.decorativeCircle2} />
+      <View style={styles.decorativeCircle3} />
+    </LinearGradient>
   );
 };
 

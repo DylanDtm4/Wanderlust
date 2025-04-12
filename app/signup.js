@@ -57,9 +57,11 @@ const SignUpScreen = () => {
         <TextInput
           style={styles.inputField}
           placeholder="Enter your password"
+          placeholderTextColor="#666"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
+          color="black"
         />
       </View>
       
@@ -169,4 +171,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SignUpScreen; 
+export default SignUpScreen;

@@ -12,7 +12,7 @@ const LoginScreen = ({ setIsAuthenticated }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const router = useRouter(); // Use router 
+  const router = useRouter();
 
   const handleLogin = () => {
     if (username === 'User' && password === 'Password') {

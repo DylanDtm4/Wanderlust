@@ -1,52 +1,81 @@
-import React, { useState, useEffect } from 'react';
-import { Tabs, Stack } from 'expo-router';
-import { View, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { Stack, Tabs, Slot } from 'expo-router';
+import { View, ActivityIndicator, Animated, StyleSheet } from 'react-native';
 import TabBar from '../components/TabBar';
 import LoginScreen from './LoginScreen';
 import SplashScreen from './splash';
-import { useFonts } from 'expo-font';
 
-// Keep the splash screen visible while we fetch resources
 const _layout = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  //const [isSplash, setisSplash] = useState(false);
+  const [isSplashVisible, setIsSplashVisible] = useState(true);
   
+  // Animation values
+  const splashOpacity = useRef(new Animated.Value(1)).current;
+  const loginPosition = useRef(new Animated.Value(300)).current; // Start off-screen to the right
 
   useEffect(() => {
     // Simulate splash screen delay
     setTimeout(() => {
-      setIsLoading(false);
-      return <SplashScreen/>
+      // Fade out splash screen
+      Animated.timing(splashOpacity, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }).start(() => {
+        setIsSplashVisible(false);
+        // Slide in login screen from right
+        Animated.timing(loginPosition, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+          
+        }).start();
+      });
       
-    }, 4000);
+      // Simulate an authentication check
+      setTimeout(() => {
+        setIsAuthenticated(false);
+      }, 0);
+    }, 2000); 
   }, []);
 
-  // Show loading spinner while app is loading
-  if (isLoading) {
+  if (isSplashVisible) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#0891b2" />
-      </View>
+      <Animated.View style={[styles.fullScreen, { opacity: splashOpacity }]}>
+        <SplashScreen />
+      </Animated.View>
     );
   }
-  // If not authenticated, show login screen
+
   if (!isAuthenticated) {
-    return <LoginScreen setIsAuthenticated={setIsAuthenticated} />;
+    return (
+      <Animated.View style={[
+        styles.fullScreen,
+        { transform: [{ translateX: loginPosition }] }
+      ]}>
+        <LoginScreen setIsAuthenticated={setIsAuthenticated} />
+      </Animated.View>
+    );
   }
 
-  // Show tabs only after the user is authenticated
   return (
-    <>
-    <Tabs tabBar={(props) => <TabBar {...props} />}>
-      <Tabs.Screen name="index" options={{ title: 'Home' }} />
-      <Tabs.Screen name="explore" options={{ title: 'Explore' }} />
-      <Tabs.Screen name="create" options={{ title: 'Create' }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
-    </Tabs>
-    </>
+      <Tabs tabBar={(props) => <TabBar {...props} />}>
+        <Tabs.Screen name="index" options={{ title: 'Home' }} />
+        <Tabs.Screen name="explore" options={{ title: 'Explore' }} />
+        <Tabs.Screen name="create" options={{ title: 'Create' }} />
+        <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
+      </Tabs>
   );
-
 };
 
+const styles = StyleSheet.create({
+  fullScreen: {
+    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+});
 export default _layout;
