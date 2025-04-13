@@ -5,21 +5,22 @@ import GoogleIcon from '../assets/images/Google logo.png';
 import Logo from '../assets/images/Logo2.png';
 
 
-const SignUpScreen = () => {
+const SignUpScreen = ({ setIsAuthenticated,onLogin }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
   
   const router = useRouter();
 
   const handleSignUp = () => {
     // Placeholder signup logic
+    setIsAuthenticated(true);
     alert('Account created successfully!');
-    router.push('/index');
   };
 
   const handleLogin = () => {
-    router.push('/LoginScreen');
+    onLogin(); // Call the onLogin prop passed from _layout.jsx
   };
 
   return (
@@ -98,8 +99,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 60,
     right: 20,
-    width: 100, // Adjust the size as needed
-    height: 100, // Adjust the size as needed
+    width: 100, 
+    height: 100,
   },
   title: {
     fontSize: 30,

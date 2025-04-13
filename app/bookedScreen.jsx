@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Image, Animated, Easing } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Logo from '../assets/images/Logo2.png';
 
 const BookedScreen = () => {
   const router = useRouter();

@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { useRouter } from 'expo-router';  
+import { useRouter, useRootNavigationState, Redirect } from 'expo-router';  
 import GoogleIcon from '../assets/images/Google logo.png';
 import Logo from '../assets/images/Logo2.png';
 import Signup from './signup';
 
 import { Feather } from '@expo/vector-icons';
 
-const LoginScreen = ({ setIsAuthenticated }) => {
+const LoginScreen = ({ setIsAuthenticated, onSignup }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const rootNavigationState = useRootNavigationState();
 
   const router = useRouter();
 
@@ -22,8 +23,9 @@ const LoginScreen = ({ setIsAuthenticated }) => {
     }
   };
   
+  
   const handleSignUp = () => {
-    router.push('/signup'); // this takes you to the signup page 
+    onSignup(); // Use the prop instead of direct navigation
   };
 
   return (

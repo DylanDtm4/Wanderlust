@@ -1,45 +1,55 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Stack, Tabs, Slot } from 'expo-router';
-import { View, ActivityIndicator, Animated, StyleSheet } from 'react-native';
+import { Tabs, Slot, useRouter } from 'expo-router';
+import { View, Animated, StyleSheet } from 'react-native';
 import TabBar from '../components/TabBar';
 import LoginScreen from './LoginScreen';
 import SplashScreen from './splash';
+import Signup from './signup';
 
 const _layout = () => {
+  const [appState, setAppState] = useState('splash'); // 'splash', 'login', 'signup', 'app'
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isSplashVisible, setIsSplashVisible] = useState(true);
-  
-  // Animation values
+  const [isAppReady, setIsAppReady] = useState(false); // New state to track if root layout is ready
   const splashOpacity = useRef(new Animated.Value(1)).current;
-  const loginPosition = useRef(new Animated.Value(300)).current; // Start off-screen to the right
+  const loginPosition = useRef(new Animated.Value(300)).current;
+  const router = useRouter();
 
   useEffect(() => {
     // Simulate splash screen delay
     setTimeout(() => {
-      // Fade out splash screen
       Animated.timing(splashOpacity, {
         toValue: 0,
         duration: 500,
         useNativeDriver: true,
       }).start(() => {
-        setIsSplashVisible(false);
-        // Slide in login screen from right
+        setAppState('login');
         Animated.timing(loginPosition, {
           toValue: 0,
           duration: 500,
           useNativeDriver: true,
-          
-        }).start();
+        }).start(() => {
+          setIsAppReady(true); // Mark the layout as ready after login animation
+        });
       });
-      
-      // Simulate an authentication check
-      setTimeout(() => {
-        setIsAuthenticated(false);
-      }, 0);
-    }, 2000); 
+    }, 2000);
+
+    // Simulate authentication check (replace with your actual auth logic)
+    setTimeout(() => {
+      setIsAuthenticated(false); 
+    }, 2500);
   }, []);
 
-  if (isSplashVisible) {
+  if (!isAppReady && appState === 'login') {
+    return (
+      <Animated.View
+        style={[styles.fullScreen, { transform: [{ translateX: loginPosition }] }]}
+      >
+        <LoginScreen setIsAuthenticated={setIsAuthenticated} />
+      </Animated.View>
+    );
+  }
+
+  if (appState === 'splash') {
     return (
       <Animated.View style={[styles.fullScreen, { opacity: splashOpacity }]}>
         <SplashScreen />
@@ -47,35 +57,42 @@ const _layout = () => {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <Animated.View style={[
-        styles.fullScreen,
-        { transform: [{ translateX: loginPosition }] }
-      ]}>
-        <LoginScreen setIsAuthenticated={setIsAuthenticated} />
-      </Animated.View>
-    );
-  }
+  const handleScreenChange = (screen) => {
+    setAppState(screen);
+  };
 
   return (
-      <Tabs tabBar={(props) => <TabBar {...props} />}>
-        <Tabs.Screen name="index" options={{ title: 'Home' }} />
-        <Tabs.Screen name="explore" options={{ title: 'Explore' }} />
-        <Tabs.Screen name="create" options={{ title: 'Create' }} />
-        <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
-      </Tabs>
+    <View style={styles.fullScreen}>
+      {isAuthenticated ? (
+        <Tabs tabBar={(props) => <TabBar {...props} />}>
+          <Tabs.Screen name="index" options={{ title: 'Home' }} />
+          <Tabs.Screen name="explore" options={{ title: 'Explore' }} />
+          <Tabs.Screen name="create" options={{ title: 'Create' }} />
+          <Tabs.Screen name="saved" options={{ title: 'Saved' }} />
+          <Tabs.Screen name="Profile" options={{ title: 'Profile' }} />
+        </Tabs>
+      ) : (
+        appState === 'login' ? (
+          <LoginScreen 
+            setIsAuthenticated={setIsAuthenticated}
+            onSignup={() => handleScreenChange('signup')}
+          />
+        ) : (
+          appState === 'signup' && (
+            <Signup 
+            setIsAuthenticated={setIsAuthenticated}
+            onLogin={() => handleScreenChange('login')} />
+          )
+        )
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   fullScreen: {
     flex: 1,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
 });
+
 export default _layout;

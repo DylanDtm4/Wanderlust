@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack , useRouter} from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
 const friendsData = [
@@ -10,7 +10,7 @@ const friendsData = [
     username: '@sparker',
     location: 'New York, USA',
     mutual: 12,
-    avatar: { uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop' },
+    avatar: { uri: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop' },
     interests: ['Photography', 'Hiking', 'Culture'],
     status: 'Exploring Tokyo right now! 🗼',
   },
@@ -20,7 +20,7 @@ const friendsData = [
     username: '@miketravel',
     location: 'Toronto, Canada',
     mutual: 8,
-    avatar: { uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop' },
+    avatar: { uri: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop' },
     interests: ['Food', 'Adventure', 'Cities'],
     status: 'Planning next trip to Paris',
   },
@@ -30,7 +30,7 @@ const friendsData = [
     username: '@emmaw',
     location: 'London, UK',
     mutual: 15,
-    avatar: { uri: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop' },
+    avatar: { uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop' },
     interests: ['Nature', 'Photography', 'History'],
     status: 'Just returned from Iceland!',
   },
@@ -40,7 +40,7 @@ const friendsData = [
     username: '@alexr',
     location: 'Barcelona, Spain',
     mutual: 6,
-    avatar: { uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop' },
+    avatar: { uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop' },
     interests: ['Beach', 'Culture', 'Food'],
     status: 'Looking for travel buddies in Europe',
   },
@@ -48,6 +48,9 @@ const friendsData = [
 
 const FindFriends = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+  
+  // Render friend cards based on filtered data
 
   const renderFriendCard = (friend) => (
     <TouchableOpacity key={friend.id} style={styles.friendCard}>

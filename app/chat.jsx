@@ -67,7 +67,6 @@ const Chat = () => {
     toggleMenu();
     // Handle the selected action (block, report, or favorite)
     console.log(`User selected to ${action} ${params.userName}`);
-    // Add your actual logic here
   };
 
   const sendMessage = () => {
