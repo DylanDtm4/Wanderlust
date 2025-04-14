@@ -1,74 +1,81 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, SafeAreaView, ScrollView, Modal, Dimensions } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+  Modal,
+  Dimensions,
+} from "react-native";
+import { Stack, useRouter } from "expo-router";
+import { Feather } from "@expo/vector-icons";
 
-const { height } = Dimensions.get('window');
+const { height } = Dimensions.get("window");
 
 const Create = () => {
   const [showGallery, setShowGallery] = useState(false);
   const [selectedImage, setSelectedImage] = useState({
-    uri: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80',
-    location: 'Santorini'
+    uri: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+    location: "Santorini",
   });
 
   const galleryImages = [
     {
-      uri: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f',
-      date: '2024-03-15',
-      location: 'Eiffel Tower, Paris'
+      uri: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f",
+      date: "2024-03-15",
+      location: "Eiffel Tower, Paris",
     },
     {
-      uri: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e',
-      date: '2024-03-14',
-      location: 'Bali Beach'
+      uri: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e",
+      date: "2024-03-14",
+      location: "Bali Beach",
     },
     {
-      uri: 'https://images.unsplash.com/photo-1526392060635-9d6019884377',
-      date: '2024-03-14',
-      location: 'Machu Picchu'
+      uri: "https://images.unsplash.com/photo-1526392060635-9d6019884377",
+      date: "2024-03-14",
+      location: "Machu Picchu",
     },
     {
-      uri: 'https://images.unsplash.com/photo-1564507592333-c60657eea523',
-      date: '2024-03-13',
-      location: 'Taj Mahal'
+      uri: "https://images.unsplash.com/photo-1564507592333-c60657eea523",
+      date: "2024-03-13",
+      location: "Taj Mahal",
     },
     {
-      uri: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9',
-      date: '2024-03-13',
-      location: 'Santorini'
+      uri: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9",
+      date: "2024-03-13",
+      location: "Santorini",
     },
     {
-      uri: 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d',
-      date: '2024-03-12',
-      location: 'Tokyo Tower'
-    }
+      uri: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d",
+      date: "2024-03-12",
+      location: "Tokyo Tower",
+    },
   ];
   const router = useRouter();
-
-  const handelNext = () => {
-    router.push('/nextCreate');
+  // Fix the handleExplore function
+  const handleNext = () => {
+    router.push("/nextCreate");
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      
+
       {/* Status Bar */}
       <View style={styles.statusBar}>
         <Text style={styles.time}></Text>
-        <TouchableOpacity onPress={handelNext}>
+        <TouchableOpacity onPress={handleNext}>
           <Text style={styles.nextButton}>Next</Text>
         </TouchableOpacity>
       </View>
 
       {/* Main Image Container */}
       <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: selectedImage.uri }}
-          style={styles.mainImage}
-        />
-        
+        <Image source={{ uri: selectedImage.uri }} style={styles.mainImage} />
+
         {/* Location Info Overlay */}
         <View style={styles.locationOverlay}>
           <Text style={styles.cityState}>{selectedImage.location}</Text>
@@ -81,7 +88,7 @@ const Create = () => {
       </View>
 
       {/* Gallery Button */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.galleryButton}
         onPress={() => setShowGallery(true)}
       >
@@ -108,43 +115,52 @@ const Create = () => {
             </View>
 
             <ScrollView style={styles.galleryScroll}>
-              {Array.from(new Set(galleryImages.map(img => img.date))).map(date => (
-                <View key={date} style={styles.dateSection}>
-                  <Text style={styles.dateHeader}>
-                    {new Date(date).toLocaleDateString('en-US', {
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </Text>
-                  <View style={styles.imagesGrid}>
-                    {galleryImages
-                      .filter(img => img.date === date)
-                      .map((image, index) => (
-                        <TouchableOpacity 
-                          key={index} 
-                          style={styles.galleryItem}
-                          onPress={() => {
-                            setSelectedImage({
-                              uri: image.uri,
-                              location: image.location
-                            });
-                            setShowGallery(false);
-                          }}
-                        >
-                          <Image 
-                            source={{ uri: image.uri }} 
-                            style={styles.galleryImage}
-                            resizeMode="cover"
-                          />
-                          <View style={styles.locationLabel}>
-                            <Feather name="map-pin" size={12} color="#FFFFFF" style={styles.locationIcon} />
-                            <Text style={styles.locationText}>{image.location}</Text>
-                          </View>
-                        </TouchableOpacity>
-                      ))}
+              {Array.from(new Set(galleryImages.map((img) => img.date))).map(
+                (date) => (
+                  <View key={date} style={styles.dateSection}>
+                    <Text style={styles.dateHeader}>
+                      {new Date(date).toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </Text>
+                    <View style={styles.imagesGrid}>
+                      {galleryImages
+                        .filter((img) => img.date === date)
+                        .map((image, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            style={styles.galleryItem}
+                            onPress={() => {
+                              setSelectedImage({
+                                uri: image.uri,
+                                location: image.location,
+                              });
+                              setShowGallery(false);
+                            }}
+                          >
+                            <Image
+                              source={{ uri: image.uri }}
+                              style={styles.galleryImage}
+                              resizeMode="cover"
+                            />
+                            <View style={styles.locationLabel}>
+                              <Feather
+                                name="map-pin"
+                                size={12}
+                                color="#FFFFFF"
+                                style={styles.locationIcon}
+                              />
+                              <Text style={styles.locationText}>
+                                {image.location}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        ))}
+                    </View>
                   </View>
-                </View>
-              ))}
+                )
+              )}
             </ScrollView>
           </View>
         </View>
@@ -156,90 +172,90 @@ const Create = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    position: 'relative',
+    backgroundColor: "#FFFFFF",
+    position: "relative",
   },
   statusBar: {
     height: 44,
-    backgroundColor: '#1E1E1E',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    backgroundColor: "#1E1E1E",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
   },
   time: {
-    fontFamily: 'Alexandria',
+    fontFamily: "Alexandria",
     fontSize: 15,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     letterSpacing: -0.3,
   },
   nextButton: {
-    fontFamily: 'Actor',
+    fontFamily: "Actor",
     fontSize: 16,
-    color: '#3897F0',
+    color: "#3897F0",
     letterSpacing: -0.33,
   },
   imageContainer: {
     width: 396.5,
     height: 586.75,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginTop: 80,
     borderRadius: 40.5,
-    overflow: 'hidden',
-    position: 'relative',
+    overflow: "hidden",
+    position: "relative",
   },
   mainImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     borderRadius: 40.5,
   },
   locationOverlay: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     left: 20,
     right: 20,
     height: 101.25,
-    backgroundColor: 'rgba(29, 29, 29, 0.4)',
+    backgroundColor: "rgba(29, 29, 29, 0.4)",
     borderRadius: 20.25,
     padding: 15,
-    backdropFilter: 'blur(27px)',
+    backdropFilter: "blur(27px)",
   },
   cityState: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 21.6,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: "500",
+    color: "#FFFFFF",
     marginBottom: 10,
   },
   locationDetails: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 10,
   },
   stateCountry: {
-    fontFamily: 'Actor',
+    fontFamily: "Actor",
     fontSize: 18.9,
-    color: '#CAC8C8',
+    color: "#CAC8C8",
     marginLeft: 10,
   },
   rating: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 18.9,
-    color: '#CAC8C8',
-    position: 'absolute',
+    color: "#CAC8C8",
+    position: "absolute",
     right: 10,
   },
   galleryButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 120,
     right: 20,
-    backgroundColor: '#386BF6',
+    backgroundColor: "#386BF6",
     width: 60,
     height: 60,
     borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -251,83 +267,83 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
   },
   galleryContainer: {
     height: height * 0.6,
-    backgroundColor: '#1E1E1E',
+    backgroundColor: "#1E1E1E",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   galleryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
-    backgroundColor: '#1E1E1E',
+    backgroundColor: "#1E1E1E",
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
+    borderBottomColor: "rgba(255,255,255,0.1)",
   },
   galleryTitle: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   cancelButton: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
   },
   galleryScroll: {
     flex: 1,
-    backgroundColor: '#1E1E1E',
+    backgroundColor: "#1E1E1E",
   },
   dateSection: {
     marginBottom: 20,
     paddingHorizontal: 12,
   },
   dateHeader: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 12,
     marginLeft: 4,
     opacity: 0.8,
   },
   imagesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 3,
   },
   galleryItem: {
-    width: '42.5%',
+    width: "42.5%",
     aspectRatio: 1,
     marginBottom: 3,
     borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#2C2C2C',
+    overflow: "hidden",
+    backgroundColor: "#2C2C2C",
   },
   galleryImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   locationLabel: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: "rgba(0,0,0,0.7)",
     padding: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   locationIcon: {
     marginRight: 4,
   },
   locationText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 11,
     flex: 1,
   },

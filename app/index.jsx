@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,86 +13,16 @@ import Icon from "react-native-vector-icons/Feather";
 import { Feather } from "@expo/vector-icons";
 import Logo from "../assets/images/Logo2.png";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-
-const popularLocations = [
-  {
-    id: 1,
-    name: "Santorini",
-    city: "Cyclades, Greece",
-    author: "Alice Johnson",
-    image: {
-      uri: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=100",
-    },
-    rating: "4.9",
-    description: "Iconic white-washed buildings with blue domes",
-  },
-  {
-    id: 2,
-    name: "Machu Picchu",
-    city: "Cusco Region, Peru",
-    author: "John Smith",
-    image: {
-      uri: "https://images.unsplash.com/photo-1518684079-3c830dcef090?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=100",
-    },
-    rating: "4.9",
-    description: "Ancient Incan citadel in the Andes Mountains",
-  },
-  {
-    id: 3,
-    name: "Taj Mahal",
-    city: "Agra, India",
-    author: "Tammy Kean",
-    image: {
-      uri: "https://images.unsplash.com/photo-1548013146-72479768bada?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=100",
-    },
-    rating: "4.8",
-    description: "Magnificent marble mausoleum and UNESCO site",
-  },
-  {
-    id: 5,
-    name: "Mount Fuji",
-    city: "Honshu, Japan",
-    author: "Noah Kim",
-    image: {
-      uri: "https://images.unsplash.com/photo-1522083165195-3424ed129620?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=100",
-    },
-    rating: "4.8",
-    description: "Japan's highest mountain and iconic symbol",
-  },
-  {
-    id: 6,
-    name: "Bali Rice Terraces",
-    city: "Ubud, Indonesia",
-    author: "Ryan Rui",
-    image: {
-      uri: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=100",
-    },
-    rating: "4.7",
-    description: "Stunning emerald-green rice paddies",
-  },
-  {
-    id: 7,
-    name: "Colosseum",
-    city: "Rome, Italy",
-    author: "Joseph Jayden",
-    image: {
-      uri: "https://images.unsplash.com/photo-1555921015-5532091f6026?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=100",
-    },
-    rating: "4.8",
-    description: "Ancient Roman amphitheater and iconic landmark",
-  },
-].map((location) => ({
-  ...location,
-  likes: Math.floor(Math.random() * 10000) + 1000,
-  comments: [],
-  votes: Math.floor(Math.random() * 1000),
-  isLiked: false,
-}));
+import { getAuth } from "firebase/auth";
+import { app } from "../config/firebase";
 
 const Home = () => {
   const router = useRouter();
+  const [posts, setPosts] = useState([]);
   const [locations, setLocations] = useState(popularLocations);
   const [activeComment, setActiveComment] = useState(null);
+  const [liked, setLiked] = useState({});
+  const [likeBg, setlikeBg] = useState({});
   //const [color, setLikeColor] =
 
   const handleSignUp = () => {
@@ -111,8 +41,6 @@ const Home = () => {
   const handleChatbotPress = () => {
     router.push("/chatbot");
   };
-  const [liked, setLiked] = useState({});
-  const [likeBg, setlikeBg] = useState({});
 
   const handleLike = (id) => {
     setLiked((prevLiked) => ({
@@ -120,7 +48,41 @@ const Home = () => {
       [id]: !prevLiked[id], // Toggle like status for each location
     }));
   };
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const auth = getAuth(app);
+        const currentUser = auth.currentUser;
 
+        if (!currentUser) {
+          console.log("No user is signed in.");
+          return;
+        }
+
+        const userId = currentUser.uid;
+        const res = await fetch(
+          `http://localhost:8080/get/following/posts/${userId}`
+        );
+        const data = await res.json();
+        const displayPosts = await Promise.all(
+          data.map((p) => {
+            return {
+              id: p.id,
+              title: p.title,
+              locations: p.locations,
+              rating: p.rating,
+              pictures: p.pictures,
+              saved: p.saved,
+            };
+          })
+        );
+        setPosts(displayPosts);
+      } catch (err) {
+        console.error("Fetch error:", err);
+      }
+    };
+    fetchPosts();
+  }, []);
   return (
     <ScrollView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -186,21 +148,22 @@ const Home = () => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalScroll}
           >
-            {locations.map((location) => (
+
+            {posts.map((post) => (
               <TouchableOpacity
-                key={location.id}
+                key={post.id}
                 style={styles.exploreCard}
                 onPress={() =>
                   handleCardPress(
-                    location.image.uri,
-                    location.name,
-                    location.author,
+                    post.pictures[0],
+                    post.title,
+                    location.author, // need to fix
                     location.city
                   )
                 }
               >
                 <Image
-                  source={location.image}
+                  source={post.pictures[0]}
                   style={styles.image}
                   resizeMode="cover"
                 />
