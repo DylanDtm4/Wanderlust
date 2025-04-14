@@ -1,12 +1,13 @@
 import React, {useState, useRef} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
-import { Stack} from 'expo-router';
+import { Stack, useRouter} from 'expo-router';
 
 const ChatbotPage = () => {
   const [message, setMessage] = useState('');
+  const router = useRouter();
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView x
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
@@ -105,8 +106,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   botAvatar: {
-    width: 44,
-    height: 44,
+    width: 34,
+    height: 34,
     borderRadius: 12,
     marginRight: 8,
   },
