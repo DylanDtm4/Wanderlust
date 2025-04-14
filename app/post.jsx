@@ -62,6 +62,9 @@ const Post = () => {
   const handleMessage = () => {
     router.push('/messages');
   };
+  const handleFriends =() =>{
+    router.push('/friends')
+  };
 
   const toggleComments = () => {
     if (showAllComments) {
@@ -186,7 +189,7 @@ const Post = () => {
 
             {/* Action Buttons */}
             <View style={styles.actionButtons}>
-              <TouchableOpacity style={styles.actionButton}>
+              <TouchableOpacity style={styles.actionButton} onPress={handleFriends}>
                 <Text style={styles.actionButtonText}>Find Friends</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.actionButton} onPress={handleMessage}>

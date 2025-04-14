@@ -165,6 +165,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
+    marginTop: 60,
     borderBottomColor: "#e5e7eb",
   },
   headerButtonText: {
