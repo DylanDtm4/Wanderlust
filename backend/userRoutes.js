@@ -29,26 +29,44 @@ userRoutes.route("/users/:id").get(async (request, response) => {
 });
 
 // #3 - Create One
-userRoutes.route("/users").post(async (request, response) => {
-  let db = database.getDb();
-  let mongoObject = {
-    email: request.body.email,
-    password: request.body.password,
-    username: request.body.username,
-    bio: request.body.bio,
-    age: request.body.age,
-    ratings: request.body.ratings,
-    friends: request.body.friends,
-    following: request.body.following,
-    createdPosts: request.body.createdPosts,
-    savedPosts: request.body.savedPosts,
-    notifications: request.body.notifications,
-    interests: request.body.interests,
-    online: request.body.online,
-    lastSeen: request.body.lastSeen,
-  };
-  let data = await db.collection("users").insertOne(mongoObject);
-  response.json(data);
+userRoutes.route("/create/user").post(async (request, response) => {
+  try {
+    console.log("POST /create/user hit");
+    console.log("Request body:", request.body);
+
+    const { userID, username, email } = request.body;
+    if (!userID || !username || !email) {
+      console.log("Missing fields");
+      return response.status(400).json({ message: "Missing fields" });
+    }
+
+    const mongoObject = {
+      userID,
+      username,
+      email,
+      bio: "",
+      age: null,
+      ratings: [],
+      friends: [],
+      following: [],
+      createdPosts: [],
+      savedPosts: [],
+      notifications: [],
+      interests: [],
+      online: false,
+      lastSeen: new Date(),
+    };
+
+    const db = database.getDb();
+    const result = await db.collection("users").insertOne(mongoObject);
+    console.log("User created in MongoDB:", result);
+    response.status(201).json(result);
+  } catch (error) {
+    console.error("Error inserting user:", error);
+    response
+      .status(500)
+      .json({ message: "Server error", error: error.message });
+  }
 });
 
 // #4 - Update One
@@ -57,7 +75,6 @@ userRoutes.route("/users/:id").put(async (request, response) => {
   let mongoObject = {
     $set: {
       email: request.body.email,
-      password: request.body.password,
       username: request.body.username,
       bio: request.body.bio,
       age: request.body.age,
