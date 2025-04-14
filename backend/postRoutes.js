@@ -365,4 +365,25 @@ postRoutes.route("/get/saved/posts/:userid").get(async (request, response) => {
   response.json(posts);
 });
 
+// #16 - Retrieve All (from location)
+postRoutes.route("/get/posts/:location").get(async (request, response) => {
+  let db = database.getDb();
+  const location = request.params.location; // get the location from URL
+  let posts = await db
+    .collection("posts")
+    .find(
+      { locations: { $in: [location] } },
+      {
+        projection: {
+          author: 1,
+          location: 1,
+          pictures: 1,
+        },
+      }
+    )
+    .toArray();
+
+  response.json(posts);
+});
+
 module.exports = postRoutes;

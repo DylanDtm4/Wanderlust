@@ -6,6 +6,7 @@ const cors = require("cors");
 const posts = require("./postRoutes");
 const msgs = require("./msgRoutes");
 const users = require("./userRoutes");
+const chatbot = require("./chatbotRoutes");
 
 const app = express();
 const PORT = 8080;
@@ -13,7 +14,7 @@ const PORT = 8080;
 const server = http.createServer(app); // Wrap Express in HTTP server
 const io = new Server(server, {
   cors: {
-    origin: ["http://your-frontend.com"], // Remember to change!
+    origin: ["http://localhost:8081"], // Remember to change!
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
@@ -26,6 +27,7 @@ app.use(express.json());
 app.use(posts);
 app.use(msgs);
 app.use(users);
+app.use(chatbot);
 
 // Function to update user status in DB
 const updateUserStatus = async (userId, isOnline) => {
@@ -43,29 +45,61 @@ const updateUserStatus = async (userId, isOnline) => {
 };
 
 // **Socket.io Logic**
+let onlineUsers = {};
 io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+  console.log("User connected:", socket.id);
 
   socket.on("userOnline", async (userId) => {
     if (!userId) return;
 
-    activeUsers.add(userId);
+    onlineUsers[userId] = socket.id;
     await updateUserStatus(userId, true);
 
-    // Broadcast updated user list
-    io.emit("activeUsers", Array.from(activeUsers));
+    io.emit("activeUsers", Object.keys(onlineUsers));
+  });
+
+  socket.on("private_message", ({ senderID, receiverID, chatID, message }) => {
+    const receiverSocketID = onlineUsers[receiverID];
+    if (receiverSocketID) {
+      io.to(receiverSocketID).emit("receive_message", {
+        chatID,
+        message,
+        senderID,
+      });
+    }
+  });
+
+  socket.on("typing", ({ chatID, senderID, receiverID }) => {
+    const receiverSocketID = onlineUsers[receiverID];
+    if (receiverSocketID) {
+      io.to(receiverSocketID).emit("typing", { chatID, senderID });
+    }
+  });
+
+  socket.on("stop_typing", ({ chatID, senderID, receiverID }) => {
+    const receiverSocketID = onlineUsers[receiverID];
+    if (receiverSocketID) {
+      io.to(receiverSocketID).emit("stop_typing", { chatID, senderID });
+    }
+  });
+
+  socket.on("message_seen", ({ chatID, messageID, receiverID }) => {
+    const receiverSocketID = onlineUsers[receiverID];
+    if (receiverSocketID) {
+      io.to(receiverSocketID).emit("message_seen", { chatID, messageID });
+    }
   });
 
   socket.on("disconnect", async () => {
-    console.log("User disconnected:", socket.id);
-
-    let userId = [...activeUsers].find((id) => socket.userId === id);
+    const userId = Object.keys(onlineUsers).find(
+      (key) => onlineUsers[key] === socket.id
+    );
     if (userId) {
-      activeUsers.delete(userId);
+      delete onlineUsers[userId];
       await updateUserStatus(userId, false);
     }
 
-    io.emit("activeUsers", Array.from(activeUsers));
+    io.emit("activeUsers", Object.keys(onlineUsers));
   });
 });
 
