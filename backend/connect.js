@@ -14,14 +14,15 @@ let database;
 
 module.exports = {
   connectToServer: async () => {
-    await client.connect();
-    database = client.db("userData");
-    console.log("MongoDB Connected Successfully");
+    try {
+      await client.connect();
+      database = client.db("userData");
+      console.log("MongoDB connected!");
+    } catch (err) {
+      console.error("MongoDB connection failed:", err);
+    }
   },
   getDb: () => {
-    if (!database) {
-      throw new Error("Database not initialized. Call connectToServer first.");
-    }
     return database;
   },
 };
