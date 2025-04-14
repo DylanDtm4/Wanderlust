@@ -1,13 +1,37 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Image, Animated, Easing } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Logo from '../assets/images/Logo2.png';
 
 const BookedScreen = () => {
   const router = useRouter();
+  const scaleValue = useRef(new Animated.Value(0)).current;
+  const fadeValue = useRef(new Animated.Value(0)).current;
+  const progressWidth = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Start the entrance animation
+    Animated.parallel([
+      Animated.spring(scaleValue, {
+        toValue: 1,
+        tension: 100,
+        friction: 100,
+    
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeValue, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(progressWidth, {
+        toValue: 1,
+        duration: 5000,
+        easing: Easing.linear,
+        useNativeDriver: false,
+      }),
+    ]).start();
+
     const timer = setTimeout(() => {
       router.replace('/');
     }, 5000);
@@ -16,18 +40,35 @@ const BookedScreen = () => {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Stack.Screen options={{ headerShown: false,
-       }} />
+    <Animated.View 
+      style={[
+        styles.container,
+        {
+          opacity: fadeValue,
+          transform: [{ scale: scaleValue }],
+        }
+      ]}
+    >
+      <Stack.Screen options={{ headerShown: false }} />
        
       <MaterialCommunityIcons name="compass-rose" size={120} color="#FFFFFF" />
 
       <Text style={styles.title}>Booking Confirmed!</Text>
       <Text style={styles.subtitle}>Get ready for your adventure</Text>
       <View style={styles.progressBar}>
-        <View style={styles.progress} />
+        <Animated.View 
+          style={[
+            styles.progress, 
+            {
+              width: progressWidth.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['0%', '100%']
+              })
+            }
+          ]} 
+        />
       </View>
-    </View>
+    </Animated.View>
   );
 };
 
@@ -64,11 +105,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   progress: {
-    width: '100%',
     height: '100%',
     backgroundColor: '#386BF6',
     borderRadius: 2,
-    animation: 'loading 5s linear',
   },
 });
 
