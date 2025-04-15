@@ -1,20 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Dimensions, Image, Animated, ScrollView } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
-import { BlurView } from 'expo-blur';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ImageBackground,
+  Dimensions,
+  Image,
+  Animated,
+  ScrollView,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useLocalSearchParams, Stack, useRouter } from "expo-router";
+import { BlurView } from "expo-blur";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 const comments = [
-  { text: "Have a nice day bro", author: "TravelLover123", avatar: require('../assets/images/profile1.jpg') },
-  { text: "Wow this Trip sounds fun", author: "AdventureSeeker", avatar: require('../assets/images/profile2.jpg') },
-  { text: "Wow this is amazing", author: "Wanderer22", avatar: require('../assets/images/profile3.jpg') },
-  { text: "I wanna go on this trip now", author: "GlobeTrotter", avatar: require('../assets/images/profile4.webp') }
+  {
+    text: "Have a nice day bro",
+    author: "TravelLover123",
+    avatar: require("../assets/images/profile1.jpg"),
+  },
+  {
+    text: "Wow this Trip sounds fun",
+    author: "AdventureSeeker",
+    avatar: require("../assets/images/profile2.jpg"),
+  },
+  {
+    text: "Wow this is amazing",
+    author: "Wanderer22",
+    avatar: require("../assets/images/profile3.jpg"),
+  },
+  {
+    text: "I wanna go on this trip now",
+    author: "GlobeTrotter",
+    avatar: require("../assets/images/profile4.webp"),
+  },
 ];
 
 const Post = () => {
-  const { image, location, author, city } = useLocalSearchParams();
+  const { picture, location, author, city } = useLocalSearchParams();
   const lower = Math.floor(Math.random() * 100) + 100;
   const upper = Math.floor(Math.random() * 1000) + 200;
   const [votes, setVotes] = useState(Math.floor(Math.random() * 100000) + 10);
@@ -37,8 +63,8 @@ const Post = () => {
         useNativeDriver: true,
       }).start(() => {
         // Change comment
-        setCurrentCommentIndex((prevIndex) => 
-          (prevIndex + 1) % comments.length
+        setCurrentCommentIndex(
+          (prevIndex) => (prevIndex + 1) % comments.length
         );
         // Fade in new comment
         Animated.timing(fadeAnim, {
@@ -53,17 +79,17 @@ const Post = () => {
   }, []);
 
   const handleUpVote = () => {
-    setVotes(prevVotes => prevVotes + 1);
+    setVotes((prevVotes) => prevVotes + 1);
   };
 
   const handleDownVote = () => {
-    setVotes(prevVotes => prevVotes - 1);
+    setVotes((prevVotes) => prevVotes - 1);
   };
   const handleMessage = () => {
-    router.push('/messages');
+    router.push("/messages");
   };
-  const handleFriends =() =>{
-    router.push('/friends')
+  const handleFriends = () => {
+    router.push("/friends");
   };
 
   const toggleComments = () => {
@@ -85,17 +111,14 @@ const Post = () => {
   const router = useRouter();
   const handleExplore = () => {
     router.push({
-      pathname: '/Itinerary',
-      params: { image, location, author, city }
+      pathname: "/Itinerary",
+      params: { picture, location, author, city },
     });
   };
 
   const renderComment = (comment, index) => (
     <View key={index} style={styles.comment}>
-      <Image
-        style={styles.commentAvatar}
-        source={comment.avatar}
-      />
+      <Image style={styles.commentAvatar} source={comment.avatar} />
       <View style={styles.commentContent}>
         <Text style={styles.commentAuthor}>{comment.author}</Text>
         <Text style={styles.commentText}>{comment.text}</Text>
@@ -108,7 +131,7 @@ const Post = () => {
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
         <ImageBackground
-          source={{ uri: image }}
+          source={{ uri: picture }}
           style={styles.backgroundImage}
           resizeMode="cover"
         >
@@ -125,21 +148,20 @@ const Post = () => {
               </View>
             </View>
 
-            
-         {/* Save Button */}
-         <TouchableOpacity 
-            style={[
-              styles.savedButton, 
-              { backgroundColor: isSaved ? '#386BF6' : 'rgba(255, 255, 255, 0.1)' }
-            ]} 
-            onPress={handleSave}
-          >
-            <Feather 
-              name="bookmark" 
-              size={24} 
-              color="#FFFFFF" 
-            />
-          </TouchableOpacity>
+            {/* Save Button */}
+            <TouchableOpacity
+              style={[
+                styles.savedButton,
+                {
+                  backgroundColor: isSaved
+                    ? "#386BF6"
+                    : "rgba(255, 255, 255, 0.1)",
+                },
+              ]}
+              onPress={handleSave}
+            >
+              <Feather name="bookmark" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
 
           {/* Content Container */}
@@ -159,11 +181,21 @@ const Post = () => {
             {/* Voting Buttons */}
             <View style={styles.votingSection}>
               <TouchableOpacity style={styles.voteButton}>
-                <Feather name="arrow-up" size={24} color="#386BF6" onPress={handleUpVote} />
+                <Feather
+                  name="arrow-up"
+                  size={24}
+                  color="#386BF6"
+                  onPress={handleUpVote}
+                />
               </TouchableOpacity>
               <Text style={styles.voteCount}>{votes}</Text>
               <TouchableOpacity style={styles.voteButton}>
-                <Feather name="arrow-down" size={24} color="#386BF6" onPress={handleDownVote} />
+                <Feather
+                  name="arrow-down"
+                  size={24}
+                  color="#386BF6"
+                  onPress={handleDownVote}
+                />
               </TouchableOpacity>
             </View>
 
@@ -179,7 +211,9 @@ const Post = () => {
               </View>
               <View style={styles.infoField}>
                 <Text style={styles.fieldLabel}>Budget</Text>
-                <Text style={styles.fieldValue}>${lower}-${upper}</Text>
+                <Text style={styles.fieldValue}>
+                  ${lower}-${upper}
+                </Text>
               </View>
               <View style={styles.infoField}>
                 <Text style={styles.fieldLabel}>Activities</Text>
@@ -189,10 +223,16 @@ const Post = () => {
 
             {/* Action Buttons */}
             <View style={styles.actionButtons}>
-              <TouchableOpacity style={styles.actionButton} onPress={handleFriends}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleFriends}
+              >
                 <Text style={styles.actionButtonText}>Find Friends</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton} onPress={handleMessage}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleMessage}
+              >
                 <Text style={styles.actionButtonText}>Message</Text>
               </TouchableOpacity>
             </View>
@@ -204,24 +244,32 @@ const Post = () => {
                   <Text style={styles.commentsTitle}>Comments</Text>
                   <Text style={styles.commentCount}>3.2k</Text>
                 </View>
-                
+
                 {!showAllComments ? (
                   <Animated.View style={{ opacity: fadeAnim }}>
                     {renderComment(comments[currentCommentIndex], 0)}
                   </Animated.View>
                 ) : (
-                  <Animated.View style={{ 
-                    opacity: slideAnim,
-                    transform: [{
-                      translateY: slideAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [20, 0]
-                      })
-                    }]
-                  }}>
-                    {comments.map((comment, index) => renderComment(comment, index))}
+                  <Animated.View
+                    style={{
+                      opacity: slideAnim,
+                      transform: [
+                        {
+                          translateY: slideAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [20, 0],
+                          }),
+                        },
+                      ],
+                    }}
+                  >
+                    {comments.map((comment, index) =>
+                      renderComment(comment, index)
+                    )}
                     <View style={styles.viewMoreContainer}>
-                      <Text style={styles.viewMoreText}>View all 3.2k comments</Text>
+                      <Text style={styles.viewMoreText}>
+                        View all 3.2k comments
+                      </Text>
                       <Feather name="chevron-down" size={16} color="#FFFFFF" />
                     </View>
                   </Animated.View>
@@ -248,23 +296,23 @@ const Post = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1E1E1E',
+    backgroundColor: "#1E1E1E",
   },
   backgroundImage: {
     width: width,
     height: height,
   },
   blurOverlay: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#1E1E1E',
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#1E1E1E",
     opacity: 0.7,
   },
   topSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 28,
     paddingTop: 67,
     marginBottom: 10,
@@ -277,149 +325,149 @@ const styles = StyleSheet.create({
   savedButton: {
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
     borderRadius: 20,
   },
   ratingSection: {
     height: 40,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   starContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   rating: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
   authorInfo: {
     marginTop: 45,
     marginBottom: 12,
   },
   byText: {
-    fontFamily: 'Montserrat',
+    fontFamily: "Montserrat",
     fontSize: 14,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     opacity: 0.7,
     marginBottom: 4,
   },
   locationTitle: {
-    fontFamily: 'Montserrat',
+    fontFamily: "Montserrat",
     fontSize: 32,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: "500",
+    color: "#FFFFFF",
   },
   locationInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
     marginBottom: 16,
   },
   locationText: {
-    fontFamily: 'Actor',
+    fontFamily: "Actor",
     fontSize: 16,
-    fontStyle: 'bold',
-    color: 'white',
+    fontStyle: "bold",
+    color: "white",
     fontWeight: 400,
   },
   votingSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginBottom: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 8,
     borderRadius: 20,
   },
   voteButton: {
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   voteCount: {
-    fontFamily: 'Actor',
+    fontFamily: "Actor",
     fontSize: 16,
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
     marginHorizontal: 4,
   },
   commonInfo: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
   },
   infoField: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   fieldLabel: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   fieldValue: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 13,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     opacity: 0.8,
   },
   actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 20,
     marginBottom: 16,
   },
   actionButton: {
-    backgroundColor: '#386BF6',
+    backgroundColor: "#386BF6",
     borderRadius: 100,
     paddingVertical: 10,
     paddingHorizontal: 20,
     minWidth: 110,
-    alignItems: 'center',
+    alignItems: "center",
   },
   actionButtonText: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
   commentsSection: {
-    backgroundColor:  'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     borderRadius: 12,
     padding: 12,
     marginBottom: 20,
   },
   commentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   commentsTitle: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 12,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   commentCount: {
-    fontFamily: 'Actor',
+    fontFamily: "Actor",
     fontSize: 13,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   comment: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
     marginBottom: 15,
   },
@@ -427,46 +475,46 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   commentAuthor: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 12,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
     marginBottom: 2,
   },
   commentText: {
-    fontFamily: 'Actor',
+    fontFamily: "Actor",
     fontSize: 12,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   commentAvatar: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#C7C7CC',
-    resizeMode: 'cover',
+    backgroundColor: "#C7C7CC",
+    resizeMode: "cover",
   },
   viewMoreContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 8,
   },
   viewMoreText: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 12,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     marginRight: 4,
   },
   bookContainer: {
-    flexDirection: 'row',
-    alignSelf: 'center',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
+    flexDirection: "row",
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
     padding: 20,
-    width: '80%',
+    width: "80%",
     borderRadius: 50,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4.84,
@@ -474,19 +522,19 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   bookButton: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 16,
-    fontWeight: '700',
-    color: '#386BF6',
+    fontWeight: "700",
+    color: "#386BF6",
     marginRight: 8,
   },
   bookButtonIcon: {
-    backgroundColor: 'rgba(56, 107, 246, 0.1)',
+    backgroundColor: "rgba(56, 107, 246, 0.1)",
     width: 24,
     height: 24,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

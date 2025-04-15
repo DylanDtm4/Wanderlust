@@ -32,10 +32,10 @@ const Home = () => {
     router.push("surprise");
   };
 
-  const handleCardPress = (image, location, author, city) => {
+  const handleCardPress = (picture, location, username, city) => {
     router.push({
       pathname: "/post",
-      params: { image, location, author, city },
+      params: { picture, location, username, city },
     });
   };
   const handleChatbotPress = () => {
@@ -70,7 +70,8 @@ const Home = () => {
             return {
               id: p._id,
               title: p.title,
-              locations: p.locations,
+              location: p.location,
+              city: p.city,
               rating: p.rating,
               picture: p.picture,
               saved: p.saved,
@@ -163,7 +164,7 @@ const Home = () => {
                 }
               >
                 <Image
-                  source={post.picture}
+                  source={{ uri: post.picture }}
                   style={styles.image}
                   resizeMode="cover"
                 />
@@ -171,25 +172,25 @@ const Home = () => {
                   style={[
                     styles.heartButton,
                     {
-                      backgroundColor: liked[location.id]
+                      backgroundColor: liked[post.id]
                         ? "white"
                         : "rgba(0, 0, 0, 0.4)",
                     }, // Change background color
                   ]}
-                  onPress={() => handleLike(location.id)}
+                  onPress={() => handleLike(post.id)}
                 >
                   <Feather
                     name="heart"
                     size={25}
-                    color={liked[location.id] ? "red" : "white"} // Change color dynamically
+                    color={liked[post.id] ? "red" : "white"} // Change color dynamically
                   />
                 </TouchableOpacity>
 
                 <View style={styles.cardContent}>
-                  <Text style={styles.locationText}>{location.name}</Text>
+                  <Text style={styles.locationText}>{post.title}</Text>
                   <View style={styles.cardFooter}>
-                    <Text style={styles.cityText}>{location.city}</Text>
-                    <Text style={styles.rating}>{location.rating} ★</Text>
+                    <Text style={styles.cityText}>{post.city}</Text>
+                    <Text style={styles.rating}>{post.rating} ★</Text>
                   </View>
                 </View>
               </TouchableOpacity>

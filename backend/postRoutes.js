@@ -30,8 +30,7 @@ postRoutes.route("/posts/:postID").get(async (request, response) => {
 // #3 - Create One
 postRoutes.route("/create/post").post(async (request, response) => {
   let db = database.getDb();
-  console.log("Incoming POST body:", request.body);
-
+  console.log(request.body);
   let mongoObject = {
     userID: request.body.userID,
     username: request.body.username,
