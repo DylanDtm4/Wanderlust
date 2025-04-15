@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,48 +12,37 @@ import {
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 
 const { height } = Dimensions.get("window");
 
 const Create = () => {
-  const [showGallery, setShowGallery] = useState(false);
-  const [selectedImage, setSelectedImage] = useState({
-    uri: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-    location: "Santorini",
-  });
+  const [image, setImage] = useState(null);
 
-  const galleryImages = [
-    {
-      uri: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f",
-      date: "2024-03-15",
-      location: "Eiffel Tower, Paris",
-    },
-    {
-      uri: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e",
-      date: "2024-03-14",
-      location: "Bali Beach",
-    },
-    {
-      uri: "https://images.unsplash.com/photo-1526392060635-9d6019884377",
-      date: "2024-03-14",
-      location: "Machu Picchu",
-    },
-    {
-      uri: "https://images.unsplash.com/photo-1564507592333-c60657eea523",
-      date: "2024-03-13",
-      location: "Taj Mahal",
-    },
-    {
-      uri: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9",
-      date: "2024-03-13",
-      location: "Santorini",
-    },
-    {
-      uri: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d",
-      date: "2024-03-12",
-      location: "Tokyo Tower",
-    },
-  ];
+  const uploadImage = async (mode) => {
+    try {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        alert("Permission required to access media library.");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        const uri = result.assets[0].uri;
+        setImage(uri);
+      }
+    } catch (err) {
+      alert("Error uploading image: " + err.message);
+    }
+  };
+
   const router = useRouter();
   // Fix the handleExplore function
   const handleNext = () => {
@@ -74,9 +63,17 @@ const Create = () => {
 
       {/* Main Image Container */}
       <View style={styles.imageContainer}>
-        <Image source={{ uri: selectedImage.uri }} style={styles.mainImage} />
+        {image ? (
+          <Image source={{ uri: image }} style={styles.mainImage} />
+        ) : (
+          <View style={styles.mainImage}>
+            <Text style={{ color: "#aaa", textAlign: "center", marginTop: 20 }}>
+              No image selected
+            </Text>
+          </View>
+        )}
 
-        {/* Location Info Overlay */}
+        {/* Location Info Overlay 
         <View style={styles.locationOverlay}>
           <Text style={styles.cityState}>{selectedImage.location}</Text>
           <View style={styles.locationDetails}>
@@ -85,86 +82,15 @@ const Create = () => {
             <Text style={styles.rating}>4.8</Text>
           </View>
         </View>
+      */}
       </View>
-
       {/* Gallery Button */}
       <TouchableOpacity
         style={styles.galleryButton}
-        onPress={() => setShowGallery(true)}
+        onPress={() => uploadImage("gallery")}
       >
         <Feather name="image" size={24} color="#FFFFFF" />
       </TouchableOpacity>
-
-      {/* Gallery Modal */}
-      <Modal
-        visible={showGallery}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowGallery(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.galleryContainer}>
-            <View style={styles.galleryHeader}>
-              <TouchableOpacity onPress={() => setShowGallery(false)}>
-                <Text style={styles.cancelButton}>Cancel</Text>
-              </TouchableOpacity>
-              <Text style={styles.galleryTitle}>Recent Photos</Text>
-              <TouchableOpacity>
-                <Text style={styles.nextButton}>Next</Text>
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.galleryScroll}>
-              {Array.from(new Set(galleryImages.map((img) => img.date))).map(
-                (date) => (
-                  <View key={date} style={styles.dateSection}>
-                    <Text style={styles.dateHeader}>
-                      {new Date(date).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </Text>
-                    <View style={styles.imagesGrid}>
-                      {galleryImages
-                        .filter((img) => img.date === date)
-                        .map((image, index) => (
-                          <TouchableOpacity
-                            key={index}
-                            style={styles.galleryItem}
-                            onPress={() => {
-                              setSelectedImage({
-                                uri: image.uri,
-                                location: image.location,
-                              });
-                              setShowGallery(false);
-                            }}
-                          >
-                            <Image
-                              source={{ uri: image.uri }}
-                              style={styles.galleryImage}
-                              resizeMode="cover"
-                            />
-                            <View style={styles.locationLabel}>
-                              <Feather
-                                name="map-pin"
-                                size={12}
-                                color="#FFFFFF"
-                                style={styles.locationIcon}
-                              />
-                              <Text style={styles.locationText}>
-                                {image.location}
-                              </Text>
-                            </View>
-                          </TouchableOpacity>
-                        ))}
-                    </View>
-                  </View>
-                )
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };

@@ -19,11 +19,11 @@ import { app } from "../config/firebase";
 const Home = () => {
   const router = useRouter();
   const [posts, setPosts] = useState([]);
-  const [locations, setLocations] = useState(popularLocations);
+  const [locations, setLocations] = useState([]);
   const [activeComment, setActiveComment] = useState(null);
   const [liked, setLiked] = useState({});
   const [likeBg, setlikeBg] = useState({});
-  //const [color, setLikeColor] =
+  // const [color, setLikeColor] =
 
   const handleSignUp = () => {
     router.push("/signup");
@@ -60,14 +60,15 @@ const Home = () => {
         }
 
         const userId = currentUser.uid;
+        // adjust to following only later!
         const res = await fetch(
-          `http://localhost:8080/get/following/posts/${userId}`
+          `https://5b48-129-110-242-173.ngrok-free.app/posts`
         );
         const data = await res.json();
         const displayPosts = await Promise.all(
           data.map((p) => {
             return {
-              id: p.id,
+              id: p._id,
               title: p.title,
               locations: p.locations,
               rating: p.rating,
@@ -148,7 +149,6 @@ const Home = () => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalScroll}
           >
-
             {posts.map((post) => (
               <TouchableOpacity
                 key={post.id}

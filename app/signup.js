@@ -33,7 +33,7 @@ const SignUpScreen = ({ setIsAuthenticated, onLogin }) => {
 
       // Post into backend mongodb
       const response = await fetch(
-        "https://f1b6-129-110-242-173.ngrok-free.app/create/user", // remember to fix
+        "https://5b48-129-110-242-173.ngrok-free.app/create/user", // remember to fix
         {
           method: "POST",
           headers: {

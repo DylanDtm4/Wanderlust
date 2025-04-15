@@ -1,5 +1,6 @@
 const express = require("express");
 const database = require("./connect");
+const parser = require("./upload");
 const ObjectId = require("mongodb").ObjectId;
 
 let postRoutes = express.Router();
@@ -27,36 +28,42 @@ postRoutes.route("/posts/:postID").get(async (request, response) => {
   }
 });
 // #3 - Create One
-postRoutes.route("/posts").post(async (request, response) => {
-  let db = database.getDb();
-  let mongoObject = {
-    userID: request.body.userID,
-    author: request.body.author,
-    title: request.body.title,
-    locations: request.body.locations,
-    description: request.body.description,
-    uploads: request.body.uploads,
-    rated: request.body.rated,
-    rating: request.body.rating,
-    allRatings: request.body.allRatings,
-    numRatings: request.body.numRatings,
-    review: request.body.review,
-    allReviews: request.body.allReviews,
-    tags: request.body.tags,
-    bestTime: request.body.bestTime,
-    duration: request.body.duration,
-    upvotes: request.body.upvotes,
-    upvoted: request.body.upvoted,
-    downvoted: request.body.downvoted,
-    saved: request.body.saved,
-    comments: request.body.comments,
-    budget: request.body.budget,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  let data = await db.collection("posts").insertOne(mongoObject);
-  response.json(data);
-});
+postRoutes
+  .route("/posts")
+  .post(parser.array("images", 10), async (request, response) => {
+    let db = database.getDb();
+
+    // Uploads: get URLs from Cloudinary-uploaded files
+    const uploads = request.files.map((file) => file.path); // array of image URLs
+
+    let mongoObject = {
+      userID: request.body.userID,
+      author: request.body.author,
+      title: request.body.title,
+      locations: request.body.locations,
+      description: request.body.description,
+      uploads: uploads,
+      rated: request.body.rated,
+      rating: request.body.rating,
+      allRatings: request.body.allRatings,
+      numRatings: request.body.numRatings,
+      review: request.body.review,
+      allReviews: request.body.allReviews,
+      tags: request.body.tags,
+      bestTime: request.body.bestTime,
+      duration: request.body.duration,
+      upvotes: request.body.upvotes,
+      upvoted: request.body.upvoted,
+      downvoted: request.body.downvoted,
+      saved: request.body.saved,
+      comments: request.body.comments,
+      budget: request.body.budget,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    let data = await db.collection("posts").insertOne(mongoObject);
+    response.json(data);
+  });
 // #4 - Update One
 postRoutes.route("/posts/:postID").put(async (request, response) => {
   let db = database.getDb();

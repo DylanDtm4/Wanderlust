@@ -4,6 +4,7 @@ const cors = require("cors");
 const posts = require("./postRoutes");
 const msgs = require("./msgRoutes");
 const users = require("./userRoutes");
+const images = require("./imageRoutes");
 const chatbot = require("./chatbotRoutes");
 
 const app = express();
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use(posts);
 app.use(msgs);
 app.use(users);
+app.use(images);
 app.use(chatbot);
 
 app.get("/", (req, res) => {
