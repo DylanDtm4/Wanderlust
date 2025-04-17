@@ -13,12 +13,37 @@ import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import Home from "./index";
 import Logo from "../assets/images/Logo2.png";
+import { getAuth } from "firebase/auth";
+import { app } from "../config/firebase";
 
 const { width, height } = Dimensions.get("window");
 
 const Itinerary = () => {
-  const { image, location } = useLocalSearchParams();
+  const {
+    postID,
+    picture,
+    location,
+    username,
+    city,
+    bestTime,
+    upvotes,
+    upvoted,
+    downvoted,
+    duration,
+    lowerBudget,
+    upperBudget,
+    // activities,
+    // comments,
+    saved,
+    rating,
+    rated,
+  } = useLocalSearchParams();
   const router = useRouter();
+
+  const auth = getAuth(app);
+  const currentUser = auth.currentUser;
+  if (!currentUser) throw new Error("User not logged in");
+  const userId = currentUser.uid;
 
   const activities = [
     {
@@ -53,10 +78,53 @@ const Itinerary = () => {
     },
   ];
   const handleXPress = () => {
-    router.replace({ pathname: "/post", params: { image, location } });
+    router.replace({
+      pathname: "/post",
+      params: {
+        postID,
+        picture,
+        location,
+        username,
+        city,
+        bestTime,
+        upvotes,
+        upvoted,
+        downvoted,
+        duration,
+        lowerBudget,
+        upperBudget,
+        activities,
+        // comments,
+        saved,
+        rating,
+        rated,
+      },
+    });
   };
-  const handleSave = () => {
-    router.push("/");
+  const handleSave = async (postID) => {
+    try {
+      const res = await fetch(
+        `https://wanderlustbackend-s12f.onrender.com/users/${userId}/save-post`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postID }),
+        }
+      );
+
+      const data = await res.json();
+      console.log("Save response:", data);
+
+      if (data.success) {
+        router.push("/");
+        alert("Post saved!");
+      } else {
+        throw new Error("Save failed");
+      }
+    } catch (err) {
+      console.error("Save error:", err);
+      alert("Could not save post");
+    }
   };
 
   return (
@@ -66,7 +134,7 @@ const Itinerary = () => {
       <Image source={Logo} style={styles.logo} resizeMode="contain" />
       <View style={styles.container}>
         <ImageBackground
-          source={{ uri: image }}
+          source={{ uri: picture }}
           style={styles.backgroundImage}
           resizeMode="cover"
         >
@@ -105,7 +173,7 @@ const Itinerary = () => {
               </View>
             ))}
             {/*SAVE*/}
-            <TouchableOpacity onPress={handleSave}>
+            <TouchableOpacity onPress={() => handleSave(postID)}>
               <View style={styles.saveContainer}>
                 <Text style={styles.saveButton}>SAVE!</Text>
                 <View style={styles.saveButtonIcon}>
