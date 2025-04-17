@@ -55,6 +55,7 @@ const Create = () => {
 			pathname: "/nextCreate",
 			params: { picture: image },
 		});
+		setImage(null);
 	};
 
 	return (

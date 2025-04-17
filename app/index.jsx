@@ -21,9 +21,18 @@ const Home = () => {
   const [posts, setPosts] = useState([]);
   const [locations, setLocations] = useState([]);
   const [activeComment, setActiveComment] = useState(null);
-  const [liked, setLiked] = useState({});
-  const [likeBg, setlikeBg] = useState({});
-  // const [color, setLikeColor] =
+  const [savedPosts, setSavedPosts] = useState([]);
+  const [savedBg, setsavedBg] = useState({});
+  const auth = getAuth(app);
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    console.log("No user is signed in.");
+    return;
+  }
+
+  const userId = currentUser.uid;
+  // const [color, setSaveColor] =
 
   const handleSignUp = () => {
     router.push("/signup");
@@ -78,24 +87,59 @@ const Home = () => {
     router.push("/chatbot");
   };
 
-  const handleLike = (id) => {
-    setLiked((prevLiked) => ({
-      ...prevLiked,
-      [id]: !prevLiked[id], // Toggle like status for each location
-    }));
+  const handleSave = async (postID) => {
+    try {
+      const res = await fetch(
+        `https://mint-adder-awake.ngrok-free.app/users/${userId}/save-post`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postID }),
+        }
+      );
+
+      const data = await res.json();
+      console.log("Save response:", data);
+
+      if (data.success) {
+        alert("Post saved!");
+      } else {
+        throw new Error("Save failed");
+      }
+    } catch (err) {
+      console.error("Save error:", err);
+      alert("Could not save post");
+    }
   };
+
+  const handleUnsave = async (postID) => {
+    try {
+      const res = await fetch(
+        `https://mint-adder-awake.ngrok-free.app/users/${userId}/remove-saved-post`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postID }),
+        }
+      );
+
+      const data = await res.json();
+      console.log("Unsave response:", data);
+
+      if (data.success) {
+        alert("Post removed from saved posts.");
+      } else {
+        throw new Error("Unsave failed");
+      }
+    } catch (err) {
+      console.error("Unsave error:", err);
+      alert("Could not remove post from saved list");
+    }
+  };
+
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const auth = getAuth(app);
-        const currentUser = auth.currentUser;
-
-        if (!currentUser) {
-          console.log("No user is signed in.");
-          return;
-        }
-
-        const userId = currentUser.uid;
         // adjust to following only later!
         const res = await fetch(
           `https://mint-adder-awake.ngrok-free.app/posts`
@@ -130,8 +174,26 @@ const Home = () => {
         console.error("Fetch error:", err);
       }
     };
+    const fetchSavedPosts = async () => {
+      if (!userId) return;
+
+      try {
+        const res = await fetch(
+          `https://mint-adder-awake.ngrok-free.app/users/${userId}`
+        );
+        const data = await res.json();
+        if (data.savedPosts) {
+          setSavedPosts(data.savedPosts);
+        } else {
+          console.error("No saved posts found");
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+      }
+    };
     fetchPosts();
-  }, []);
+    fetchSavedPosts();
+  });
   return (
     <ScrollView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -231,17 +293,21 @@ const Home = () => {
                   style={[
                     styles.heartButton,
                     {
-                      backgroundColor: liked[post.id]
+                      backgroundColor: savedPosts.includes(post.id)
                         ? "white"
                         : "rgba(0, 0, 0, 0.4)",
                     }, // Change background color
                   ]}
-                  onPress={() => handleLike(post.id)}
+                  onPress={() =>
+                    savedPosts.includes(post.id)
+                      ? handleUnsave(post.id)
+                      : handleSave(post.id)
+                  }
                 >
                   <Feather
                     name="heart"
                     size={25}
-                    color={liked[post.id] ? "red" : "white"} // Change color dynamically
+                    color={savedPosts.includes(post.id) ? "red" : "white"} // Change color dynamically
                   />
                 </TouchableOpacity>
 

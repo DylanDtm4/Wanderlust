@@ -13,7 +13,8 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { BlurView } from "expo-blur";
-
+import { getAuth } from "firebase/auth";
+import { app } from "../config/firebase";
 const { width, height } = Dimensions.get("window");
 
 const Post = () => {
@@ -58,7 +59,8 @@ const Post = () => {
       avatar: require("../assets/images/profile3.jpg"),
     },
   ];
-  const [isSaved, setIsSaved] = useState(saved === "true");
+  const [isSaved, setIsSaved] = useState(savedPosts.includes(postID));
+  const [savedPosts, setSavedPosts] = useState([]);
   const [hasUpvoted, setHasUpvoted] = useState(upvoted === "true");
   const [hasDownvoted, setHasDownvoted] = useState(downvoted === "true");
 
@@ -67,46 +69,91 @@ const Post = () => {
   const [showAllComments, setShowAllComments] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(1));
   const [slideAnim] = useState(new Animated.Value(0));
-  const handleSave = async () => {
+  const auth = getAuth(app);
+  const currentUser = auth.currentUser;
+  if (!currentUser) throw new Error("User not logged in");
+  const userId = currentUser.uid;
+
+  const handleSave = async (postID) => {
     try {
-      const endpoint = saved
-        ? `/posts/unsave/${postID}`
-        : `/posts/save/${postID}`;
-      const response = await fetch(
-        `https://mint-adder-awake.ngrok-free.app${endpoint}`,
+      const res = await fetch(
+        `https://mint-adder-awake.ngrok-free.app/users/${userId}/save-post`,
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postID }),
         }
       );
 
-      const data = await response.json();
-      if (response.ok && data.success) {
-        console.log(data.message);
-        setSaved(!saved);
+      const data = await res.json();
+      console.log("Save response:", data);
+
+      if (data.success) {
+        setIsSaved(true); // Update UI
+        alert("Post saved!");
       } else {
-        console.error("Save/Unsave failed", data);
+        throw new Error("Save failed");
       }
-    } catch (error) {
-      console.error("Error saving post:", error);
+    } catch (err) {
+      console.error("Save error:", err);
+      alert("Could not save post");
+    }
+  };
+
+  const handleUnsave = async (postID) => {
+    try {
+      const res = await fetch(
+        `https://mint-adder-awake.ngrok-free.app/users/${userId}/remove-saved-post`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postID }),
+        }
+      );
+
+      const data = await res.json();
+      console.log("Unsave response:", data);
+
+      if (data.success) {
+        setIsSaved(false); // Update UI
+        alert("Post removed from saved posts.");
+      } else {
+        throw new Error("Unsave failed");
+      }
+    } catch (err) {
+      console.error("Unsave error:", err);
+      alert("Could not remove post from saved list");
     }
   };
 
   useEffect(() => {
+    const fetchSavedPosts = async () => {
+      if (!userId) return;
+
+      try {
+        const res = await fetch(
+          `https://mint-adder-awake.ngrok-free.app/users/${userId}`
+        );
+        const data = await res.json();
+        if (data.savedPosts) {
+          setSavedPosts(data.savedPosts);
+        } else {
+          console.error("No saved posts found");
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+      }
+    };
+
     const interval = setInterval(() => {
-      // Fade out current comment
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 500,
         useNativeDriver: true,
       }).start(() => {
-        // Change comment
         setCurrentCommentIndex(
           (prevIndex) => (prevIndex + 1) % comments.length
         );
-        // Fade in new comment
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 500,
@@ -114,6 +161,8 @@ const Post = () => {
         }).start();
       });
     }, 5000);
+
+    fetchSavedPosts();
 
     return () => clearInterval(interval);
   }, []);
@@ -264,7 +313,9 @@ const Post = () => {
                     : "rgba(255, 255, 255, 0.1)",
                 },
               ]}
-              onPress={handleSave}
+              onPress={() => {
+                isSaved ? handleUnsave(postID) : handleSave(postID);
+              }}
             >
               <Feather name="bookmark" size={24} color="#FFFFFF" />
             </TouchableOpacity>
