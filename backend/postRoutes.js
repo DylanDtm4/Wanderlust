@@ -254,8 +254,7 @@ postRoutes.route("/posts/upvote/postID").post(async (request, response) => {
   let result = await db.collection("posts").updateOne(
     { _id: new ObjectId(request.params.postID) },
     {
-      $inc: { upvotes: 1 }, // Increase upvote count
-      $set: { upvoted: true, downvoted: false }, // upvoted, downvoted logic
+      $set: { upvotes: request.body.votes, upvoted: request.body.upvoted },
     }
   );
   if (result.modifiedCount > 0) {
@@ -277,8 +276,7 @@ postRoutes.route("/posts/downvote/:postID").post(async (request, response) => {
   let result = await db.collection("posts").updateOne(
     { _id: new ObjectId(request.params.postID) },
     {
-      $inc: { upvotes: -1 }, // Decrease upvote count
-      $set: { upvoted: false, downvoted: true }, // upvoted, downvoted logic
+      $set: { upvotes: request.body.votes, downvoted: request.body.downvoted },
     }
   );
   if (result.modifiedCount > 0) {

@@ -32,10 +32,46 @@ const Home = () => {
     router.push("surprise");
   };
 
-  const handleCardPress = (picture, location, username, city) => {
+  const handleCardPress = (
+    postID,
+    picture,
+    location,
+    username,
+    city,
+    bestTime,
+    upvotes,
+    upvoted,
+    downvoted,
+    duration,
+    lowerBudget,
+    upperBudget,
+    activities,
+    comments,
+    saved,
+    rating,
+    rated
+  ) => {
     router.push({
       pathname: "/post",
-      params: { picture, location, username, city },
+      params: {
+        postID,
+        picture,
+        location,
+        username,
+        city,
+        bestTime,
+        upvotes,
+        upvoted,
+        downvoted,
+        duration,
+        lowerBudget,
+        upperBudget,
+        activities,
+        comments,
+        saved,
+        rating,
+        rated,
+      },
     });
   };
   const handleChatbotPress = () => {
@@ -69,12 +105,23 @@ const Home = () => {
           data.map((p) => {
             return {
               id: p._id,
+              username: p.username,
               title: p.title,
               location: p.location,
               city: p.city,
               rating: p.rating,
               picture: p.picture,
               saved: p.saved,
+              bestTime: p.bestTime,
+              upvotes: p.upvotes,
+              upvoted: p.upvoted,
+              downvoted: p.downvoted,
+              duration: p.duration,
+              lowerBudget: p.lowerBudget,
+              upperBudget: p.upperBudget,
+              activities: p.activities,
+              comments: p.comments,
+              rated: p.rated,
             };
           })
         );
@@ -156,10 +203,22 @@ const Home = () => {
                 style={styles.exploreCard}
                 onPress={() =>
                   handleCardPress(
+                    post.id,
                     post.picture,
                     post.title,
-                    post.username, // need to fix
-                    post.city
+                    post.username,
+                    post.city,
+                    post.bestTime,
+                    post.upvotes,
+                    post.upvoted,
+                    post.downvoted,
+                    post.duration,
+                    post.lowerBudget,
+                    post.upperBudget,
+                    post.activities,
+                    post.comments,
+                    post.saved,
+                    post.rating
                   )
                 }
               >

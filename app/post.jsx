@@ -16,42 +16,82 @@ import { BlurView } from "expo-blur";
 
 const { width, height } = Dimensions.get("window");
 
-const comments = [
-  {
-    text: "Have a nice day bro",
-    author: "TravelLover123",
-    avatar: require("../assets/images/profile1.jpg"),
-  },
-  {
-    text: "Wow this Trip sounds fun",
-    author: "AdventureSeeker",
-    avatar: require("../assets/images/profile2.jpg"),
-  },
-  {
-    text: "Wow this is amazing",
-    author: "Wanderer22",
-    avatar: require("../assets/images/profile3.jpg"),
-  },
-  {
-    text: "I wanna go on this trip now",
-    author: "GlobeTrotter",
-    avatar: require("../assets/images/profile4.webp"),
-  },
-];
-
 const Post = () => {
-  const { picture, location, author, city } = useLocalSearchParams();
-  const lower = Math.floor(Math.random() * 100) + 100;
-  const upper = Math.floor(Math.random() * 1000) + 200;
-  const [votes, setVotes] = useState(Math.floor(Math.random() * 100000) + 10);
+  const {
+    postID,
+    picture,
+    location,
+    username,
+    city,
+    bestTime,
+    upvotes,
+    upvoted,
+    downvoted,
+    duration,
+    lowerBudget,
+    upperBudget,
+    activities,
+    // comments,
+    saved,
+    rating,
+    rated,
+  } = useLocalSearchParams();
+  /* comments layout {
+    text: "Have a nice day bro",
+    username: "TravelLover123",
+    avatar: require("../assets/images/profile1.jpg"),
+  } */
+  const comments = [
+    {
+      text: "Have a nice day bro",
+      username: "TravelLover123",
+      avatar: require("../assets/images/profile1.jpg"),
+    },
+    {
+      text: "Wow this Trip sounds fun",
+      username: "AdventureSeeker",
+      avatar: require("../assets/images/profile2.jpg"),
+    },
+    {
+      text: "Wow this is amazing",
+      username: "Wanderer22",
+      avatar: require("../assets/images/profile3.jpg"),
+    },
+  ];
+  const [isSaved, setIsSaved] = useState(saved === "true");
+  const [hasUpvoted, setHasUpvoted] = useState(upvoted === "true");
+  const [hasDownvoted, setHasDownvoted] = useState(downvoted === "true");
+
+  const [votes, setVotes] = useState(upvotes);
   const [currentCommentIndex, setCurrentCommentIndex] = useState(0);
   const [showAllComments, setShowAllComments] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(1));
   const [slideAnim] = useState(new Animated.Value(0));
-  const [isSaved, setIsSaved] = useState(false);
+  const handleSave = async () => {
+    try {
+      const endpoint = saved
+        ? `/posts/unsave/${postID}`
+        : `/posts/save/${postID}`;
+      const response = await fetch(
+        `https://mint-adder-awake.ngrok-free.app${endpoint}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-  const handleSave = () => {
-    setIsSaved(!isSaved);
+      const data = await response.json();
+      if (response.ok && data.success) {
+        console.log(data.message);
+        setSaved(!saved);
+      } else {
+        console.error("Save/Unsave failed", data);
+      }
+    } catch (error) {
+      console.error("Error saving post:", error);
+    }
   };
 
   useEffect(() => {
@@ -78,13 +118,61 @@ const Post = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleUpVote = () => {
-    setVotes((prevVotes) => prevVotes + 1);
+  const handleUpVote = async () => {
+    if (hasUpvoted) {
+      setHasUpvoted(false);
+      setVotes((prev) => prev - 1);
+    } else {
+      setVotes((prev) => prev + (hasDownvoted ? 2 : 1));
+      setHasUpvoted(true);
+    }
+    try {
+      await fetch(
+        `https://mint-adder-awake.ngrok-free.app/posts/upvote/${postID}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            upvotes: votes,
+            upvoted: hasUpvoted,
+          }),
+        }
+      );
+    } catch (err) {
+      console.error("Failed to upvote:", err);
+    }
   };
 
-  const handleDownVote = () => {
-    setVotes((prevVotes) => prevVotes - 1);
+  const handleDownVote = async () => {
+    if (hasDownvoted) {
+      setVotes((prev) => prev + 1);
+      setHasDownvoted(false);
+    } else {
+      setVotes((prev) => prev - (hasUpvoted ? 2 : 1));
+      setHasUpvoted(false);
+      setHasDownvoted(true);
+    }
+    try {
+      await fetch(
+        `https://mint-adder-awake.ngrok-free.app/posts/downvote/${postID}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            upvotes: votes,
+            downvoted: hasDownvoted,
+          }),
+        }
+      );
+    } catch (err) {
+      console.error("Failed to downvote:", err);
+    }
   };
+
   const handleMessage = () => {
     router.push("/messages");
   };
@@ -112,7 +200,25 @@ const Post = () => {
   const handleExplore = () => {
     router.push({
       pathname: "/Itinerary",
-      params: { picture, location, author, city },
+      params: {
+        postID,
+        picture,
+        location,
+        username,
+        city,
+        bestTime,
+        upvotes,
+        upvoted,
+        downvoted,
+        duration,
+        lowerBudget,
+        upperBudget,
+        activities,
+        comments,
+        saved,
+        rating,
+        rated,
+      },
     });
   };
 
@@ -120,7 +226,7 @@ const Post = () => {
     <View key={index} style={styles.comment}>
       <Image style={styles.commentAvatar} source={comment.avatar} />
       <View style={styles.commentContent}>
-        <Text style={styles.commentAuthor}>{comment.author}</Text>
+        <Text style={styles.commentUsername}>{comment.username}</Text>
         <Text style={styles.commentText}>{comment.text}</Text>
       </View>
     </View>
@@ -144,7 +250,7 @@ const Post = () => {
             <View style={styles.ratingSection}>
               <View style={styles.starContainer}>
                 <Feather name="star" size={25} color="gold" />
-                <Text style={styles.rating}>4.5</Text>
+                <Text style={styles.rating}>{rating}</Text>
               </View>
             </View>
 
@@ -166,9 +272,9 @@ const Post = () => {
 
           {/* Content Container */}
           <View style={styles.contentContainer}>
-            {/* Author Info */}
-            <View style={styles.authorInfo}>
-              <Text style={styles.byText}>By: {author}</Text>
+            {/* username Info */}
+            <View style={styles.usernameInfo}>
+              <Text style={styles.byText}>By: {username}</Text>
               <Text style={styles.locationTitle}>{location}</Text>
             </View>
 
@@ -203,21 +309,21 @@ const Post = () => {
             <View style={styles.commonInfo}>
               <View style={styles.infoField}>
                 <Text style={styles.fieldLabel}>Best Time</Text>
-                <Text style={styles.fieldValue}>December - March</Text>
+                <Text style={styles.fieldValue}>{bestTime}</Text>
               </View>
               <View style={styles.infoField}>
                 <Text style={styles.fieldLabel}>Duration</Text>
-                <Text style={styles.fieldValue}>5-7 Days</Text>
+                <Text style={styles.fieldValue}>{duration}</Text>
               </View>
               <View style={styles.infoField}>
                 <Text style={styles.fieldLabel}>Budget</Text>
                 <Text style={styles.fieldValue}>
-                  ${lower}-${upper}
+                  ${lowerBudget}-${upperBudget}
                 </Text>
               </View>
               <View style={styles.infoField}>
                 <Text style={styles.fieldLabel}>Activities</Text>
-                <Text style={styles.fieldValue}>Skiing, Hiking</Text>
+                <Text style={styles.fieldValue}>{activities}</Text>
               </View>
             </View>
 
@@ -345,7 +451,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#FFFFFF",
   },
-  authorInfo: {
+  usernameInfo: {
     marginTop: 45,
     marginBottom: 12,
   },
@@ -474,7 +580,7 @@ const styles = StyleSheet.create({
   commentContent: {
     flex: 1,
   },
-  commentAuthor: {
+  commentUsername: {
     fontFamily: "Poppins",
     fontSize: 12,
     fontWeight: "600",
