@@ -16,11 +16,10 @@ userRoutes.route("/users").get(async (request, response) => {
 });
 
 // #2 - Retrieve One
-userRoutes.route("/users/:id").get(async (request, response) => {
+userRoutes.route("/users/:userid").get(async (request, response) => {
 	let db = database.getDb();
-	let data = await db
-		.collection("users")
-		.findOne({ _id: new ObjectId(request.params.id) });
+	const userId = request.params.userid;
+	let data = await db.collection("users").findOne({ userID: userId });
 	if (Object.keys(data).length > 0) {
 		response.json(data);
 	} else {
@@ -196,4 +195,41 @@ userRoutes.route("/user/username/:userID").get(async (request, response) => {
 	}
 });
 
+// #12 - Save Post
+userRoutes.route("/users/:userid/save-post").put(async (req, res) => {
+	let db = database.getDb();
+	const userId = req.params.userid;
+	const { postID } = req.body;
+
+	try {
+		const result = await db.collection("users").updateOne(
+			{ userID: userId },
+			{ $addToSet: { savedPosts: postID } } // avoids duplicates
+		);
+		res.json({ success: true, result });
+	} catch (error) {
+		console.error("Save post error:", error);
+		res.status(500).json({ success: false, error: "Failed to save post" });
+	}
+});
+
+// #13 - Unsave post
+userRoutes.route("/users/:userid/remove-saved-post").put(async (req, res) => {
+	let db = database.getDb();
+	const userId = req.params.userid;
+	const { postID } = req.body;
+
+	try {
+		const result = await db.collection("users").updateOne(
+			{ userID: userId },
+			{ $pull: { savedPosts: postID } } // removes matching postID
+		);
+		res.json({ success: true, result });
+	} catch (error) {
+		console.error("Remove saved post error:", error);
+		res
+			.status(500)
+			.json({ success: false, error: "Failed to remove saved post" });
+	}
+});
 module.exports = userRoutes;
