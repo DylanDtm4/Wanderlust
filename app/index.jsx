@@ -33,11 +33,7 @@ const Home = () => {
   }
 
   const userId = currentUser.uid;
-  // const [color, setSaveColor] =
 
-  const handleSignUp = () => {
-    router.push("/signup");
-  };
   const handleSurprise = () => {
     router.push("surprise");
   };
@@ -59,7 +55,8 @@ const Home = () => {
     comments,
     saved,
     rating,
-    rated
+    rated,
+    title
   ) => {
     router.push({
       pathname: "/post",
@@ -81,6 +78,7 @@ const Home = () => {
         saved,
         rating,
         rated,
+        title,
       },
     });
   };
@@ -91,7 +89,7 @@ const Home = () => {
   const handleSave = async (postID) => {
     try {
       const res = await fetch(
-        `https://mint-adder-awake.ngrok-free.app/users/${userId}/save-post`,
+        `https://wanderlustbackend-s12f.onrender.com/users/${userId}/save-post`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -116,7 +114,7 @@ const Home = () => {
   const handleUnsave = async (postID) => {
     try {
       const res = await fetch(
-        `https://mint-adder-awake.ngrok-free.app/users/${userId}/remove-saved-post`,
+        `https://wanderlustbackend-s12f.onrender.com/users/${userId}/remove-saved-post`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -143,7 +141,7 @@ const Home = () => {
       try {
         // adjust to following only later!
         const res = await fetch(
-          `https://mint-adder-awake.ngrok-free.app/posts`
+          `https://wanderlustbackend-s12f.onrender.com/posts`
         );
         const data = await res.json();
         const displayPosts = await Promise.all(
@@ -193,7 +191,7 @@ const Home = () => {
 
       try {
         const res = await fetch(
-          `https://mint-adder-awake.ngrok-free.app/users/${userId}`
+          `https://wanderlustbackend-s12f.onrender.com/users/${userId}`
         );
         const data = await res.json();
         if (data.savedPosts) {
@@ -207,7 +205,7 @@ const Home = () => {
     };
     fetchPosts();
     fetchSavedPosts();
-  });
+  }, [posts, savedPosts]);
   return (
     <ScrollView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -318,11 +316,12 @@ const Home = () => {
                         : "rgba(0, 0, 0, 0.4)",
                     }, // Change background color
                   ]}
-                  onPress={() =>
+                  onPress={() => {
+                    console.log(savedPosts.includes(post.id));
                     savedPosts.includes(post.id)
                       ? handleUnsave(post.id)
-                      : handleSave(post.id)
-                  }
+                      : handleSave(post.id);
+                  }}
                 >
                   <Feather
                     name="heart"

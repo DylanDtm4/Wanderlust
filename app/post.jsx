@@ -36,6 +36,8 @@ const Post = () => {
     saved,
     rating,
     rated,
+    title,
+    description,
   } = useLocalSearchParams();
   /* comments layout {
     text: "Have a nice day bro",
@@ -59,7 +61,7 @@ const Post = () => {
       avatar: require("../assets/images/profile3.jpg"),
     },
   ];
-  const [isSaved, setIsSaved] = useState(savedPosts.includes(postID));
+  const [isSaved, setIsSaved] = useState(null);
   const [savedPosts, setSavedPosts] = useState([]);
   const [hasUpvoted, setHasUpvoted] = useState(upvoted === "true");
   const [hasDownvoted, setHasDownvoted] = useState(downvoted === "true");
@@ -77,7 +79,7 @@ const Post = () => {
   const handleSave = async (postID) => {
     try {
       const res = await fetch(
-        `https://mint-adder-awake.ngrok-free.app/users/${userId}/save-post`,
+        `https://wanderlustbackend-s12f.onrender.com/users/${userId}/save-post`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -103,7 +105,7 @@ const Post = () => {
   const handleUnsave = async (postID) => {
     try {
       const res = await fetch(
-        `https://mint-adder-awake.ngrok-free.app/users/${userId}/remove-saved-post`,
+        `https://wanderlustbackend-s12f.onrender.com/users/${userId}/remove-saved-post`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -132,7 +134,7 @@ const Post = () => {
 
       try {
         const res = await fetch(
-          `https://mint-adder-awake.ngrok-free.app/users/${userId}`
+          `https://wanderlustbackend-s12f.onrender.com/users/${userId}`
         );
         const data = await res.json();
         if (data.savedPosts) {
@@ -163,9 +165,9 @@ const Post = () => {
     }, 5000);
 
     fetchSavedPosts();
-
+    setIsSaved(savedPosts.includes(postID));
     return () => clearInterval(interval);
-  }, []);
+  });
 
 
   const handleUpVote = async () => {
@@ -178,7 +180,7 @@ const Post = () => {
     }
     try {
       await fetch(
-        `https://mint-adder-awake.ngrok-free.app/posts/upvote/${postID}`,
+        `https://wanderlustbackend-s12f.onrender.com/posts/upvote/${postID}`,
         {
           method: "POST",
           headers: {
@@ -206,7 +208,7 @@ const Post = () => {
     }
     try {
       await fetch(
-        `https://mint-adder-awake.ngrok-free.app/posts/downvote/${postID}`,
+        `https://wanderlustbackend-s12f.onrender.com/posts/downvote/${postID}`,
         {
           method: "POST",
           headers: {
