@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Dimensions, 
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
+import { ActivityIndicator } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -15,6 +16,8 @@ const comments = [
 
 const Post = () => {
   const { image, location, author, city } = useLocalSearchParams();
+  const [isLoading, setIsLoading] = useState(true);
+  const [savedCards, setSavedCards] = useState({});
   const lower = Math.floor(Math.random() * 100) + 100;
   const upper = Math.floor(Math.random() * 1000) + 200;
   const [votes, setVotes] = useState(Math.floor(Math.random() * 100000) + 10);
@@ -23,24 +26,26 @@ const Post = () => {
   const [fadeAnim] = useState(new Animated.Value(1));
   const [slideAnim] = useState(new Animated.Value(0));
   const [isSaved, setIsSaved] = useState(false);
+  const [voteState, setVoteState] = useState('neutral'); // 'upvoted', 'downvoted', or 'neutral'
+  const [voteBgColor, setVoteBgColor] = useState('rgba(0, 0, 0, 0.5)');
 
   const handleSave = () => {
-    setIsSaved(!isSaved);
+    setSavedCards(prevState => ({
+      ...prevState,
+      [location]: !prevState[location]
+    }));
   };
 
   useEffect(() => {
     const interval = setInterval(() => {
-      // Fade out current comment
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 500,
         useNativeDriver: true,
       }).start(() => {
-        // Change comment
         setCurrentCommentIndex((prevIndex) => 
           (prevIndex + 1) % comments.length
         );
-        // Fade in new comment
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 500,
@@ -53,16 +58,58 @@ const Post = () => {
   }, []);
 
   const handleUpVote = () => {
-    setVotes(prevVotes => prevVotes + 1);
+    if (voteState === 'upvoted') {
+      // Already upvoted, do nothing
+      return;
+    }
+    
+    if (voteState === 'downvoted') {
+      // Changing from downvote to upvote
+      setVotes(prevVotes => prevVotes + 2); // +1 to cancel downvote, +1 for upvote
+      setVoteState('upvoted');
+      setVoteBgColor('#4CAF50'); // Green
+    } else {
+      // Neutral to upvote
+      setVotes(prevVotes => prevVotes + 1);
+      setVoteState('upvoted');
+      setVoteBgColor('#4CAF50'); // Green
+    }
   };
 
   const handleDownVote = () => {
-    setVotes(prevVotes => prevVotes - 1);
+    if (voteState === 'downvoted') {
+      // Already downvoted, do nothing
+      return;
+    }
+    
+    if (voteState === 'upvoted') {
+      // Changing from upvote to downvote
+      setVotes(prevVotes => prevVotes - 2); // -1 to cancel upvote, -1 for downvote
+      setVoteState('downvoted');
+      setVoteBgColor('#F44336'); // Red
+    } else {
+      // Neutral to downvote
+      setVotes(prevVotes => prevVotes - 1);
+      setVoteState('downvoted');
+      setVoteBgColor('#F44336'); // Red
+    }
   };
+
+  const handleResetVote = () => {
+    if (voteState === 'upvoted') {
+      setVotes(prevVotes => prevVotes - 1);
+    } else if (voteState === 'downvoted') {
+      setVotes(prevVotes => prevVotes + 1);
+    }
+    setVoteState('neutral');
+    setVoteBgColor('rgba(0, 0, 0, 0.5)'); // Original color
+  };
+
   const handleMessage = () => {
     router.push('/messages');
   };
-  const handleFriends =() =>{
+  
+  const handleFriends = () => {
     router.push('/friends')
   };
 
@@ -82,6 +129,7 @@ const Post = () => {
       }).start();
     }
   };
+  
   const router = useRouter();
   const handleExplore = () => {
     router.push({
@@ -103,14 +151,28 @@ const Post = () => {
     </View>
   );
 
+  useEffect(() => {
+    setIsLoading(true);
+  }, [image]);
+
+  const handleImageLoad = () => {
+    setIsLoading(false);
+  };
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
+        {isLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#386BF6" />
+          </View>
+        )}
         <ImageBackground
           source={{ uri: image }}
           style={styles.backgroundImage}
           resizeMode="cover"
+          onLoad={handleImageLoad}
         >
           {/* Blur Overlay */}
           <View style={styles.blurOverlay} />
@@ -125,21 +187,20 @@ const Post = () => {
               </View>
             </View>
 
-            
-         {/* Save Button */}
-         <TouchableOpacity 
-            style={[
-              styles.savedButton, 
-              { backgroundColor: isSaved ? '#386BF6' : 'rgba(255, 255, 255, 0.1)' }
-            ]} 
-            onPress={handleSave}
-          >
-            <Feather 
-              name="bookmark" 
-              size={24} 
-              color="#FFFFFF" 
-            />
-          </TouchableOpacity>
+            {/* Save Button */}
+            <TouchableOpacity 
+              style={[
+                styles.savedButton, 
+                { backgroundColor: savedCards[location] ? '#386BF6' : 'rgba(255, 255, 255, 0.1)' }
+              ]} 
+              onPress={handleSave}
+            >
+              <Feather 
+                name="bookmark" 
+                size={24} 
+                color="#FFFFFF" 
+              />
+            </TouchableOpacity>
           </View>
 
           {/* Content Container */}
@@ -157,13 +218,27 @@ const Post = () => {
             </View>
 
             {/* Voting Buttons */}
-            <View style={styles.votingSection}>
-              <TouchableOpacity style={styles.voteButton}>
-                <Feather name="arrow-up" size={24} color="#386BF6" onPress={handleUpVote} />
+            <View style={[styles.votingSection, { backgroundColor: voteBgColor }]}>
+              <TouchableOpacity 
+                style={styles.voteButton}
+                onPress={voteState === 'upvoted' ? handleResetVote : handleUpVote}
+              >
+                <Feather 
+                  name="arrow-up" 
+                  size={24} 
+                  color={voteState === 'upvoted' ? '#FFFFFF' : '#386BF6'} 
+                />
               </TouchableOpacity>
               <Text style={styles.voteCount}>{votes}</Text>
-              <TouchableOpacity style={styles.voteButton}>
-                <Feather name="arrow-down" size={24} color="#386BF6" onPress={handleDownVote} />
+              <TouchableOpacity 
+                style={styles.voteButton}
+                onPress={voteState === 'downvoted' ? handleResetVote : handleDownVote}
+              >
+                <Feather 
+                  name="arrow-down" 
+                  size={24} 
+                  color={voteState === 'downvoted' ? '#FFFFFF' : '#386BF6'} 
+                />
               </TouchableOpacity>
             </View>
 
@@ -487,6 +562,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingContainer: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1E1E1E',
+    zIndex: 1,
   },
 });
 

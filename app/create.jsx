@@ -45,7 +45,7 @@ const Create = () => {
     }
   ];
   const router = useRouter();
-
+  // Fix the handleExplore function
   const handelNext = () => {
     router.push('/nextCreate');
   };

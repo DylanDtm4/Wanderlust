@@ -34,7 +34,7 @@ const NextCreate = () => {
           headerTintColor: '#FFFFFF',
           headerShadowVisible: false,
           headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity onPress={() => router.push('/create')} style={styles.backButton}>
               <Feather name="arrow-left" size={24} color="#FFFFFF" />
             </TouchableOpacity>
           ),

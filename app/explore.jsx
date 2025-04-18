@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Dimensions, Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import MapView from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+
 
 const { width } = Dimensions.get('window');
 const SPOT_CARD_WIDTH = width * 0.65;
@@ -33,6 +34,7 @@ const Explore = () => {
         name: 'Times Square', 
         location: 'New York City',
         image: require('../assets/images/timesquare.jpg')},
+
       { 
         id: 2, 
         name: 'Empire State Building', 
@@ -404,7 +406,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   spotsContainer: {
-    paddingBottom: 110,
+    paddingBottom: 120,
     
   },
   spotCard: {

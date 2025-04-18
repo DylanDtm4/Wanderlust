@@ -81,6 +81,81 @@ const popularLocations = [
 		rating: "4.8",
 		description: "Ancient Roman amphitheater and iconic landmark",
 	},
+	{
+		id: 8,
+		name: "Eiffel Tower",
+		city: "Paris, France",
+		author: "Sophie Martin",
+		image: {
+			uri: "https://images.unsplash.com/photo-1431274172761-fca41d930114?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=100",
+		},
+		rating: "4.8",
+		description: "Iconic Parisian landmark and cultural symbol",
+	},
+	{
+		id: 9,
+		name: "Great Wall of China",
+		city: "Beijing, China",
+		author: "Li Wei",
+		image: {
+			uri: "https://images.unsplash.com/photo-1542662565-7e4b66bae529?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=100",
+		},
+		rating: "4.7",
+		description: "Ancient fortification stretching thousands of miles",
+	},
+	{
+		id: 10,
+		name: "Grand Canyon",
+		city: "Arizona, USA",
+		author: "Emily Johnson",
+		image: {
+			uri: "https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=100",
+		},
+		rating: "4.9",
+		description: "Breathtaking natural wonder carved by the Colorado River",
+	},
+	{
+		id: 11,
+		name: "Statue of Liberty",
+		city: "New York, USA",
+		author: "Michael Brown",
+		image: {
+			uri: "https://images.unsplash.com/photo-1521747116042-5a810fda9664?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=100",
+		},
+		rating: "4.8",
+		description: "Iconic symbol of freedom in New York Harbor",
+	},
+	{
+		id: 12,
+		name: "Time Square",
+		city: "New york, US",
+		author: "Blake Anderson",
+		image: require('../assets/images/timesquare.jpg'),
+		rating: "4.9",
+		description: "Ancient wonders of the world",
+	},
+	{
+		id: 13,
+		name: "Petra",
+		city: "Ma'an, Jordan",
+		author: "Ahmad Khalil",
+		image: {
+			uri: "https://images.unsplash.com/photo-1513628253939-010e64ac66cd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=100",
+		},
+		rating: "4.7",
+		description: "Ancient city carved into rose-red sandstone cliffs",
+	},
+	{
+		id: 14,
+		name: "Christ the Redeemer",
+		city: "Rio de Janeiro, Brazil",
+		author: "Maria Silva",
+		image: {
+			uri: "https://images.unsplash.com/photo-1516306580123-e6e52b1b7b5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=100",
+		},
+		rating: "4.8",
+		description: "Iconic statue overlooking Rio de Janeiro",
+	},
 ].map((location) => ({
 	...location,
 	likes: Math.floor(Math.random() * 10000) + 1000,
@@ -92,12 +167,17 @@ const popularLocations = [
 const Home = () => {
 	const router = useRouter();
 	const [locations, setLocations] = useState(popularLocations);
+	const [searchQuery, setSearchQuery] = useState('');
 	const [activeComment, setActiveComment] = useState(null);
-	//const [color, setLikeColor] =
+	const [savedCards, setSavedCards] = useState({}); // Track saved state per card
 
-	const handleSignUp = () => {
-		router.push("/signup");
+	const handleSave = (id) => {
+		setSavedCards(prevState => ({
+			...prevState,
+			[id]: !prevState[id] // Toggle saved state for this card
+		}));
 	};
+
 	const handleSurprise = () => {
 		router.push("surprise");
 	};
@@ -119,6 +199,19 @@ const Home = () => {
 			...prevLiked,
 			[id]: !prevLiked[id], // Toggle like status for each location
 		}));
+	};
+
+	const handleSearch = (query) => {
+		setSearchQuery(query);
+		if (query === '') {
+			setLocations(popularLocations);
+		} else {
+			const filtered = popularLocations.filter(location =>
+				location.name.toLowerCase().includes(query.toLowerCase()) ||
+				location.city.toLowerCase().includes(query.toLowerCase())
+			);
+			setLocations(filtered);
+		}
 	};
 
 	return (
@@ -150,7 +243,13 @@ const Home = () => {
 				{/* Search bar */}
 				<View style={styles.searchBar}>
 					<Icon name="search" size={20} color="#CFCAC0" />
-					<Text style={styles.searchText}>Find things to do</Text>
+					<TextInput
+						style={styles.searchText}
+						placeholder="Find things to do"
+						value={searchQuery}
+						onChangeText={handleSearch}
+						placeholderTextColor="#666"
+					/>
 				</View>
 			</View>
 
@@ -204,21 +303,17 @@ const Home = () => {
 									style={styles.image}
 									resizeMode="cover"
 								/>
-								<TouchableOpacity
+								<TouchableOpacity 
 									style={[
-										styles.heartButton,
-										{
-											backgroundColor: liked[location.id]
-												? "white"
-												: "rgba(0, 0, 0, 0.4)",
-										}, // Change background color
-									]}
-									onPress={() => handleLike(location.id)}
+									styles.savedButton, 
+									{ backgroundColor: savedCards[location.id] ? '#386BF6' : 'rgba(255, 255, 255, 0.2)' }
+									]} 
+									onPress={() => handleSave(location.id)}
 								>
-									<Feather
-										name="heart"
-										size={25}
-										color={liked[location.id] ? "red" : "white"} // Change color dynamically
+									<Feather 
+									name="bookmark" 
+									size={24} 
+									color="#FFFFFF" 
 									/>
 								</TouchableOpacity>
 
@@ -331,7 +426,7 @@ const styles = StyleSheet.create({
 		fontFamily: "Poppins",
 		fontSize: 13,
 		fontWeight: "600",
-		color: "#666",
+		color: "#000",
 		marginLeft: 10,
 	},
 	content: {
@@ -392,7 +487,7 @@ const styles = StyleSheet.create({
 		height: "100%",
 		resizeMode: "cover",
 	},
-	heartButton: {
+	savedButton: {
 		position: "absolute",
 		top: 20,
 		right: 20,
