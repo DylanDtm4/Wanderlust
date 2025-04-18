@@ -10,7 +10,7 @@ const friendsData = [
     username: '@sparker',
     location: 'New York, USA',
     mutual: 12,
-    avatar: { uri: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop' },
+    avatar: require('../assets/images/Sarah Parker.webp'),
     interests: ['Photography', 'Hiking', 'Culture'],
     status: 'Exploring Tokyo right now! 🗼',
   },
@@ -20,7 +20,7 @@ const friendsData = [
     username: '@miketravel',
     location: 'Toronto, Canada',
     mutual: 8,
-    avatar: { uri: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop' },
+    avatar: require('../assets/images/Mike Chen.jpg'),
     interests: ['Food', 'Adventure', 'Cities'],
     status: 'Planning next trip to Paris',
   },
@@ -30,7 +30,7 @@ const friendsData = [
     username: '@emmaw',
     location: 'London, UK',
     mutual: 15,
-    avatar: { uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop' },
+    avatar: require('../assets/images/Emma Wilson.jpeg'),
     interests: ['Nature', 'Photography', 'History'],
     status: 'Just returned from Iceland!',
   },
@@ -40,7 +40,7 @@ const friendsData = [
     username: '@alexr',
     location: 'Barcelona, Spain',
     mutual: 6,
-    avatar: { uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop' },
+    avatar: require('../assets/images/Alex Rivera.jpeg'),
     interests: ['Beach', 'Culture', 'Food'],
     status: 'Looking for travel buddies in Europe',
   },
@@ -88,7 +88,14 @@ const FindFriends = () => {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, 
+
+      headerLeft: () => (
+        <TouchableOpacity onPress={() => router.push('/')} style={styles.backButton}>
+          <Feather name="arrow-left" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      ),
+      }} />
       
       {/* Header */}
       <View style={styles.header}>
@@ -124,6 +131,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
+  },
+  backButton: {
+    marginLeft: 16,
   },
   header: {
     flexDirection: 'row',

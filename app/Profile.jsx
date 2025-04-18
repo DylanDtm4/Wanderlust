@@ -1,13 +1,13 @@
 import React from "react";
 import { useRouter, Stack } from "expo-router";
 import {
-	View,
-	Text,
-	StyleSheet,
-	Image,
-	TouchableOpacity,
-	ScrollView,
-	Dimensions,
+    View,
+    Text,
+    StyleSheet,
+    Image,
+    TouchableOpacity,
+    ScrollView,
+    Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import profile1 from "../assets/images/profile1.jpg";
@@ -19,221 +19,231 @@ import profile4 from "../assets/images/profile4.webp";
 import gridPosts from "../assets/images/gridIcon.png";
 
 const screenWidth = Dimensions.get("window").width;
-const cardSize = (screenWidth - 30) / 2;
+const cardSize = (screenWidth - 40) / 3; // Adjusted for 3 columns and spacing
 
 const Profile = () => {
-	const router = useRouter();
+    const router = useRouter();
 
-	const handleAddCardPress = () => {
-		router.push("/create");
-	};
+    const handleAddCardPress = () => {
+        router.push("/create");
+    };
 
-	return (
-		<>
-			<Stack.Screen options={{ headerShown: false }} />
-			<View style={styles.container}>
-				<View style={styles.username}>
-					<Text style={styles.usernameText}>john_doe</Text>
-				</View>
+    return (
+        <>
+            <Stack.Screen
+                options={{
+                    headerShown: false,
+                    statusBarAnimation: "slide",
+                    statusBarStyle: "dark",
+                }}
+            />
+            <ScrollView style={styles.container}>
+                <View style={styles.header}>
+                    <Text style={styles.usernameText}>john_doe</Text>
+                    {/* Optional: Add settings icon here */}
+                    {/* <TouchableOpacity>
+                        <Ionicons name="settings-outline" size={24} color="#262626" />
+                    </TouchableOpacity> */}
+                </View>
 
-				<View style={styles.topContainer}>
-					<Image source={profile1} style={styles.profileImage} />
-					<View style={styles.statsContainer}>
-						{[
-							{ label: "Posts", value: 54 },
-							{ label: "Followers", value: 834 },
-							{ label: "Following", value: 162 },
-						].map((item, idx) => (
-							<View key={idx} style={styles.statItem}>
-								<Text style={styles.statNumber}>{item.value}</Text>
-								<Text style={styles.statLabel}>{item.label}</Text>
-							</View>
-						))}
-					</View>
-				</View>
+                <View style={styles.profileContainer}>
+                    <Image source={profile1} style={styles.profileImage} />
+                    <View style={styles.statsContainer}>
+                        {[
+                            { label: "Posts", value: 54 },
+                            { label: "Followers", value: 834 },
+                            { label: "Following", value: 162 },
+                        ].map((item, idx) => (
+                            <View key={idx} style={styles.statItem}>
+                                <Text style={styles.statNumber}>{item.value}</Text>
+                                <Text style={styles.statLabel}>{item.label}</Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
 
-				<View style={styles.profileInfo}>
-					<View style={styles.nameBioContainer}>
-						<Text style={styles.nameBold}>John Doe</Text>
-						<Text style={styles.bio}>Travel blogs in Texas</Text>
-						<Text style={styles.bio}>Follow me for an adventure</Text>
-					</View>
-					<TouchableOpacity
-						style={styles.editButton}
-						onPress={() => router.push("/EditProfileScreen")}
-					>
-						<Text style={styles.editButtonText}>Edit Profile</Text>
-					</TouchableOpacity>
-				</View>
+                <View style={styles.profileInfo}>
+                    <Text style={styles.nameBold}>John Doe</Text>
+                    <Text style={styles.bio}>Travel blogs in Texas</Text>
+                    <Text style={styles.bio}>Follow me for an adventure</Text>
+                    <TouchableOpacity
+                        style={styles.editButton}
+                        onPress={() => router.push("/EditProfileScreen")}
+                    >
+                        <Text style={styles.editButtonText}>Edit Profile</Text>
+                    </TouchableOpacity>
+                </View>
 
-				<View style={styles.gridIcon}>
-					<Image source={gridPosts} style={styles.gridPosts} />
-				</View>
+                <View style={styles.tabBar}>
+                    <TouchableOpacity style={styles.tabItem}>
+                        <Image source={gridPosts} style={styles.tabIcon} />
+                    </TouchableOpacity>
+                    {/* Add more tabs here if needed (e.g., tagged posts) */}
+                    {/* <TouchableOpacity style={styles.tabItem}>
+                        <Ionicons name="pricetag-outline" size={24} color="#262626" />
+                    </TouchableOpacity> */}
+                </View>
 
-				<View style={styles.solidLine} />
-
-				<ScrollView contentContainerStyle={styles.gridContainer}>
-					<View style={styles.row}>
-						<Card image={fuji} location="Fuji, Tokyo" />
-						<Card image={profile6} location="Aspen, CO" />
-					</View>
-					<View style={styles.row}>
-						<Card image={profile7} location="Toronto, ON" />
-						<Card image={paris} location="Paris, France" />
-					</View>
-					<View style={styles.row}>
-						<Card image={profile4} location="Beijing, China" />
-						<TouchableOpacity style={styles.card} onPress={handleAddCardPress}>
-							<View style={styles.addButton}>
-								<Ionicons name="add-circle" size={40} color="#386BF6" />
-								<Text style={styles.locationText}>Add Place</Text>
-							</View>
-						</TouchableOpacity>
-					</View>
-				</ScrollView>
-			</View>
-		</>
-	);
+                <View style={styles.gridContainer}>
+                    <Card image={fuji} location="Fuji, Tokyo" />
+                    <Card image={profile6} location="Aspen, CO" />
+                    <Card image={profile7} location="Toronto, ON" />
+                    <Card image={paris} location="Paris, France" />
+                    <Card image={profile4} location="Beijing, China" />
+                    <TouchableOpacity style={styles.addCard} onPress={handleAddCardPress}>
+                        <Ionicons name="add-circle-outline" size={30} color="#386BF6" />
+                    </TouchableOpacity>
+                    {/* Add more cards here */}
+                </View>
+            </ScrollView>
+        </>
+    );
 };
 
 const Card = ({ image, location }) => (
-	<View style={styles.card}>
-		<Image source={image} style={styles.image} />
-		<Text style={styles.locationText}>{location}</Text>
-	</View>
+    <View style={styles.card}>
+        <Image source={image} style={styles.cardImage} />
+        {location && <Text style={styles.cardLocation}>{location}</Text>}
+    </View>
 );
 
 export default Profile;
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#fff",
-	},
-	username: {
-		alignItems: "center",
-		marginVertical: 20,
-	},
-	usernameText: {
-		fontFamily: "Poppins",
-		fontSize: 16,
-		fontWeight: "600",
-		color: "#262626",
-	},
-	topContainer: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		marginHorizontal: 20,
-		marginTop: 25,
-	},
-	profileImage: {
-		width: 100,
-		height: 100,
-		borderRadius: 50,
-		borderWidth: 3,
-		borderColor: "#C7C7CC",
-	},
-	statsContainer: {
-		flexDirection: "row",
-		justifyContent: "space-around",
-		flex: 1,
-		marginLeft: 20,
-	},
-	statItem: {
-		alignItems: "center",
-	},
-	statNumber: {
-		fontSize: 16,
-		fontWeight: "bold",
-		color: "#262626",
-	},
-	statLabel: {
-		fontSize: 12,
-		color: "#666",
-	},
-	profileInfo: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginHorizontal: 20,
-		marginTop: 10,
-	},
-	nameBioContainer: {
-		flex: 1,
-	},
-	nameBold: {
-		fontSize: 14,
-		fontWeight: "bold",
-		color: "#262626",
-		marginBottom: 4,
-	},
-	bio: {
-		fontSize: 13,
-		color: "#666",
-	},
-	editButton: {
-		backgroundColor: "#f4f4f4",
-		borderRadius: 8,
-		paddingHorizontal: 15,
-		paddingVertical: 6,
-		marginLeft: 10,
-		borderWidth: 1,
-		borderColor: "#ccc",
-	},
-	editButtonText: {
-		fontSize: 13,
-		color: "#333",
-	},
-	gridIcon: {
-		alignItems: "center",
-		marginVertical: 10,
-	},
-	gridPosts: {
-		width: 25,
-		height: 25,
-	},
-	solidLine: {
-		height: 1,
-		backgroundColor: "#eee",
-		marginHorizontal: 20,
-		marginTop: 10,
-	},
-	gridContainer: {
-		paddingHorizontal: 10,
-		paddingBottom: 20,
-		marginTop: 20,
-	},
-	row: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		marginBottom: 15,
-	},
-	card: {
-		width: cardSize,
-		height: 150,
-		backgroundColor: "#fff",
-		borderRadius: 12,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 4,
-		elevation: 3,
-		overflow: "hidden",
-		alignItems: "center",
-	},
-	image: {
-		width: "100%",
-		height: "70%",
-		resizeMode: "cover",
-	},
-	locationText: {
-		fontSize: 13,
-		color: "#444",
-		paddingTop: 5,
-	},
-	addButton: {
-		justifyContent: "center",
-		alignItems: "center",
-	},
+    container: {
+        flex: 1,
+        backgroundColor: "#fff",
+    },
+    header: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: 20,
+        paddingTop: 50, // Adjust for status bar
+        paddingBottom: 15,
+    },
+    usernameText: {
+        fontFamily: "Poppins-SemiBold", // Ensure you have this font
+        fontSize: 20,
+        color: "#262626",
+    },
+    profileContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 20,
+        paddingVertical: 20,
+    },
+    profileImage: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        borderWidth: 2,
+        borderColor: "#eee",
+    },
+    statsContainer: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+        flex: 1,
+        marginLeft: 20,
+    },
+    statItem: {
+        alignItems: "center",
+    },
+    statNumber: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: "#262626",
+    },
+    statLabel: {
+        fontSize: 12,
+        color: "#666",
+    },
+    profileInfo: {
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+    },
+    nameBold: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: "#262626",
+        marginBottom: 5,
+    },
+    bio: {
+        fontSize: 14,
+        color: "#555",
+        marginBottom: 3,
+    },
+    editButton: {
+        backgroundColor: "#fff",
+        borderRadius: 8,
+        paddingHorizontal: 15,
+        paddingVertical: 8,
+        marginTop: 15,
+        borderWidth: 1,
+        borderColor: "#ddd",
+        alignSelf: "flex-start",
+    },
+    editButtonText: {
+        fontSize: 14,
+        color: "#333",
+        fontWeight: "500",
+    },
+    tabBar: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+        borderColor: "#eee",
+        paddingVertical: 10,
+    },
+    tabItem: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    tabIcon: {
+        width: 24,
+        height: 24,
+        tintColor: "#262626",
+    },
+    gridContainer: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        paddingHorizontal: 10,
+        paddingTop: 10,
+        justifyContent: "space-between",
+    },
+    card: {
+        width: cardSize,
+        height: cardSize,
+        backgroundColor: "#f9f9f9",
+        borderRadius: 8,
+        marginBottom: 10,
+        overflow: "hidden",
+    },
+    cardImage: {
+        width: "100%",
+        height: "100%",
+        resizeMode: "cover",
+    },
+    cardLocation: {
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        color: "#fff",
+        paddingVertical: 5,
+        paddingHorizontal: 8,
+        fontSize: 12,
+    },
+    addCard: {
+        width: cardSize,
+        height: cardSize,
+        backgroundColor: "#f9f9f9",
+        borderRadius: 8,
+        marginBottom: 10,
+        justifyContent: "center",
+        alignItems: "center",
+    },
 });

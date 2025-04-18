@@ -169,6 +169,7 @@ const Post = () => {
     return () => clearInterval(interval);
   });
 
+
   const handleUpVote = async () => {
     if (hasUpvoted) {
       setHasUpvoted(false);
@@ -227,6 +228,7 @@ const Post = () => {
   const handleMessage = () => {
     router.push("/messages");
   };
+
   const handleFriends = () => {
     router.push("/friends");
   };
@@ -247,6 +249,7 @@ const Post = () => {
       }).start();
     }
   };
+  
   const router = useRouter();
   const handleExplore = () => {
     router.push({
@@ -283,14 +286,28 @@ const Post = () => {
     </View>
   );
 
+  useEffect(() => {
+    setIsLoading(true);
+  }, [image]);
+
+  const handleImageLoad = () => {
+    setIsLoading(false);
+  };
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
+        {isLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#386BF6" />
+          </View>
+        )}
         <ImageBackground
           source={{ uri: picture }}
           style={styles.backgroundImage}
           resizeMode="cover"
+          onLoad={handleImageLoad}
         >
           {/* Blur Overlay */}
           <View style={styles.blurOverlay} />
@@ -338,6 +355,7 @@ const Post = () => {
             </View>
 
             {/* Voting Buttons */}
+
             <View style={styles.votingSection}>
               <TouchableOpacity style={styles.voteButton}>
                 <Feather
@@ -694,6 +712,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
+  },
+  loadingContainer: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1E1E1E',
+    zIndex: 1,
   },
 });
 

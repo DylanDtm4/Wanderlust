@@ -92,6 +92,7 @@ const Explore = () => {
         rated,
         title,
         description,
+
       },
     });
   };
@@ -532,7 +533,9 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   spotsContainer: {
-    paddingBottom: 110,
+
+    paddingBottom: 120,
+    
   },
   spotCard: {
     width: SPOT_CARD_WIDTH,
