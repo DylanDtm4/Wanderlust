@@ -32,11 +32,7 @@ const Home = () => {
   }
 
   const userId = currentUser.uid;
-  // const [color, setSaveColor] =
 
-  const handleSignUp = () => {
-    router.push("/signup");
-  };
   const handleSurprise = () => {
     router.push("surprise");
   };
@@ -195,7 +191,7 @@ const Home = () => {
     };
     fetchPosts();
     fetchSavedPosts();
-  });
+  }, [posts, savedPosts]);
   return (
     <ScrollView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />

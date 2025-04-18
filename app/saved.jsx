@@ -32,7 +32,7 @@ const Saved = () => {
         );
         const data = await res.json();
         if (data.savedPosts) {
-          setSavedPosts(data.savedPosts);
+          setSavedPosts(data.savedPosts || []);
         } else {
           console.error("No saved posts found");
         }
@@ -80,11 +80,10 @@ const Saved = () => {
     };
     fetchSavedPosts();
     fetchPostsByID();
-  });
+  }, [posts, savedPosts]);
   // Function to handle item click
   const handleCardPress = (
     postID,
-    title,
     picture,
     location,
     username,
@@ -100,13 +99,14 @@ const Saved = () => {
     comments,
     saved,
     rating,
-    rated
+    rated,
+    title,
+    description
   ) => {
     router.push({
       pathname: "/post",
       params: {
         postID,
-        title,
         picture,
         location,
         username,
@@ -123,6 +123,8 @@ const Saved = () => {
         saved,
         rating,
         rated,
+        title,
+        description,
       },
     });
   };
@@ -172,7 +174,6 @@ const Saved = () => {
                 handleCardPress(
                   post.id,
                   post.picture,
-                  post.location,
                   post.title,
                   post.username,
                   post.city,
@@ -186,15 +187,14 @@ const Saved = () => {
                   post.activities,
                   post.comments,
                   post.saved,
-                  post.rating
+                  post.rating,
+                  post.description
                 )
               }
             >
               <Image source={{ uri: post.picture }} style={styles.itemImage} />
               <View style={styles.itemInfo}>
-                <Text style={styles.itemTitle}>
-                  {post.location || post.title}
-                </Text>
+                <Text style={styles.itemTitle}>{post.title}</Text>
                 <Text style={styles.itemDate}>{post.bestTime}</Text>
               </View>
               <Ionicons name="chevron-forward" size={24} color="#425884" />

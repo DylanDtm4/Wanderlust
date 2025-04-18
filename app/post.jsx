@@ -36,6 +36,8 @@ const Post = () => {
     saved,
     rating,
     rated,
+    title,
+    description,
   } = useLocalSearchParams();
   /* comments layout {
     text: "Have a nice day bro",
