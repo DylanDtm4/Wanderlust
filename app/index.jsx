@@ -20,7 +20,6 @@ const Home = () => {
   const router = useRouter();
   const [posts, setPosts] = useState([]);
   const [locations, setLocations] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [activeComment, setActiveComment] = useState(null);
   const [savedPosts, setSavedPosts] = useState([]);
   const [savedBg, setsavedBg] = useState({});
@@ -176,19 +175,6 @@ const Home = () => {
     const fetchSavedPosts = async () => {
       if (!userId) return;
 
-	const handleSearch = (query) => {
-		setSearchQuery(query);
-		if (query === '') {
-			setLocations(popularLocations);
-		} else {
-			const filtered = popularLocations.filter(location =>
-				location.name.toLowerCase().includes(query.toLowerCase()) ||
-				location.city.toLowerCase().includes(query.toLowerCase())
-			);
-			setLocations(filtered);
-		}
-	};
-
       try {
         const res = await fetch(
           `https://wanderlustbackend-s12f.onrender.com/users/${userId}`
@@ -218,6 +204,7 @@ const Home = () => {
       >
         <FontAwesome5 name="robot" style={styles.bot} />
       </TouchableOpacity>
+
       {/* Header Section */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -231,19 +218,12 @@ const Home = () => {
           </TouchableOpacity>
         </View>
 
-				{/* Search bar */}
-				<View style={styles.searchBar}>
-					<Icon name="search" size={20} color="#CFCAC0" />
-					<TextInput
-						style={styles.searchText}
-						placeholder="Find things to do"
-						value={searchQuery}
-						onChangeText={handleSearch}
-						placeholderTextColor="#666"
-					/>
-				</View>
-			</View>
-
+        {/* Search bar */}
+        <View style={styles.searchBar}>
+          <Icon name="search" size={20} color="#CFCAC0" />
+          <Text style={styles.searchText}>Find things to do</Text>
+        </View>
+      </View>
 
       {/* Content Section */}
       <View style={styles.content}>
@@ -329,6 +309,7 @@ const Home = () => {
                     color={savedPosts.includes(post.id) ? "red" : "white"} // Change color dynamically
                   />
                 </TouchableOpacity>
+
                 <View style={styles.cardContent}>
                   <Text style={styles.locationText}>{post.title}</Text>
                   <View style={styles.cardFooter}>
@@ -405,108 +386,109 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-	surpriseMe: {
-		backgroundColor: "rgba(29, 29, 29, 0.4)",
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-		display: "flex",
-		borderRadius: 100,
-		padding: 14,
-		marginLeft: 20,
-		top: 50,
-		backgroundColor: "#386BF6",
-		borderRadius: 33,
-		paddingVertical: 12,
-		paddingHorizontal: 20,
-	},
-	surpriseMeText: {
-		fontFamily: "Actor",
-		fontSize: 12,
-		fontWeight: "400",
-		color: "#FFFFFF",
-	},
-	searchBar: {
-		backgroundColor: "#F3F8FE",
-		borderRadius: 24,
-		flexDirection: "row",
-		alignItems: "center",
-		padding: 16,
-		marginBottom: 20,
-	},
-	searchText: {
-		fontFamily: "Poppins",
-		fontSize: 13,
-		fontWeight: "600",
-		color: "#000",
-		marginLeft: 10,
-	},
-	content: {
-		paddingHorizontal: 20,
-	},
-	popularPlaces: {
-		fontFamily: "Poppins",
-		fontSize: 20,
-		fontWeight: "600",
-		color: "#2F2F2F",
-		marginBottom: 16,
-	},
-	categoryContainer: {
-		marginBottom: 20,
-	},
-	categoryContent: {
-		paddingRight: 20,
-		gap: 10,
-	},
-	categoryButton: {
-		backgroundColor: "#386BF6",
-		borderRadius: 33,
-		paddingVertical: 12,
-		paddingHorizontal: 20,
-		marginRight: 10,
-	},
-	categoryText: {
-		fontFamily: "Actor",
-		fontSize: 14,
-		color: "#FFFFFF",
-	},
-	exploreSection: {
-		marginBottom: 20,
-	},
-	horizontalScroll: {
-		paddingHorizontal: 20,
-		gap: 20,
-	},
-	exploreCard: {
-		width: 350,
-		height: 450,
-		borderRadius: 25,
-		overflow: "hidden",
-		backgroundColor: "#FFFFFF",
-		shadowColor: "#000",
-		marginBottom: 20,
-		shadowOffset: {
-			width: 0,
-			height: 4,
-		},
-		shadowOpacity: 0.3,
-		shadowRadius: 8,
-		elevation: 8,
-		marginRight: 20,
-	},
-	image: {
-		width: "100%",
-		height: "100%",
-		resizeMode: "cover",
-	},
-	savedButton: {
-		position: "absolute",
-		top: 20,
-		right: 20,
-		backgroundColor: "rgba(0, 0, 0, 0.4)",
-		padding: 12,
-		borderRadius: 25,
-		shadowColor: "#000",
+  surpriseMe: {
+    backgroundColor: "rgba(29, 29, 29, 0.4)",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    display: "flex",
+    borderRadius: 100,
+    padding: 14,
+    marginLeft: 20,
+    top: 50,
+    backgroundColor: "#386BF6",
+    borderRadius: 33,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  surpriseMeText: {
+    fontFamily: "Actor",
+    fontSize: 12,
+    fontWeight: "400",
+    color: "#FFFFFF",
+  },
+  searchBar: {
+    backgroundColor: "#F3F8FE",
+    borderRadius: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    marginBottom: 20,
+  },
+  searchText: {
+    fontFamily: "Poppins",
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#666",
+    marginLeft: 10,
+  },
+  content: {
+    paddingHorizontal: 20,
+  },
+  popularPlaces: {
+    fontFamily: "Poppins",
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#2F2F2F",
+    marginBottom: 16,
+  },
+  categoryContainer: {
+    marginBottom: 20,
+  },
+  categoryContent: {
+    paddingRight: 20,
+    gap: 10,
+  },
+  categoryButton: {
+    backgroundColor: "#386BF6",
+    borderRadius: 33,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginRight: 10,
+  },
+  categoryText: {
+    fontFamily: "Actor",
+    fontSize: 14,
+    color: "#FFFFFF",
+  },
+  exploreSection: {
+    marginBottom: 20,
+  },
+  horizontalScroll: {
+    paddingHorizontal: 20,
+    gap: 20,
+  },
+  exploreCard: {
+    width: 350,
+    height: 450,
+    borderRadius: 25,
+    overflow: "hidden",
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#000",
+    marginBottom: 20,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    marginRight: 20,
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  heartButton: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    padding: 12,
+    borderRadius: 25,
+    shadowColor: "#000",
+
     shadowOffset: {
       width: 0,
       height: 2,
