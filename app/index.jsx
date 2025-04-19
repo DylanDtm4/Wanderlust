@@ -207,9 +207,9 @@ const Home = () => {
 
   const filteredPosts = posts.filter(
     (post) =>
-      (post.username !== user &&
-        post.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      post.city.toLowerCase().includes(searchQuery.toLowerCase())
+      post.username !== user && // Ensure the post's username isn't the current user's
+      (post.title.toLowerCase().includes(searchQuery.toLowerCase()) || // Title matches search query
+        post.city.toLowerCase().includes(searchQuery.toLowerCase())) // City matches search query
   );
 
   return (
