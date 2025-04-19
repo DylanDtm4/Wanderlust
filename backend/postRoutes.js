@@ -254,17 +254,28 @@ postRoutes.route("/posts/rating/:postID").post(async (request, response) => {
 // #10 - Update One (Upvoting post)
 postRoutes.route("/posts/upvote/:postID").post(async (request, response) => {
   let db = database.getDb();
+  // Get the current post's upvotes
+  const post = await db
+    .collection("posts")
+    .findOne({ _id: new ObjectId(request.params.postID) });
+  const currentUpvotes = post ? post.upvotes : 0; // Default to 0 if post is not found
+
+  const newUpvotes = request.body.upvoted
+    ? currentUpvotes - 1 // If already upvoted, decrement
+    : currentUpvotes + 1; // Otherwise, increment
+
   let result = await db.collection("posts").updateOne(
     { _id: new ObjectId(request.params.postID) },
     {
-      $set: { upvotes: request.body.upvotes, upvoted: request.body.upvoted },
+      $set: { upvotes: newUpvotes, upvoted: request.body.upvoted },
     }
   );
+
   if (result.modifiedCount > 0) {
     response.json({
       success: true,
       message: "Upvote added!",
-      Upvotes: request.body.upvotes,
+      Upvotes: newUpvotes,
       Upvoted: request.body.upvoted,
       Downvoted: request.body.downvoted,
     });
@@ -276,20 +287,31 @@ postRoutes.route("/posts/upvote/:postID").post(async (request, response) => {
 // #11 - Update One (Downvoting post)
 postRoutes.route("/posts/downvote/:postID").post(async (request, response) => {
   let db = database.getDb();
+  // Get the current post's upvotes
+  const post = await db
+    .collection("posts")
+    .findOne({ _id: new ObjectId(request.params.postID) });
+  const currentUpvotes = post ? post.upvotes : 0; // Default to 0 if post is not found
+
+  const newUpvotes = request.body.downvoted
+    ? currentUpvotes + 1 // If already downvoted, increment
+    : currentUpvotes - 1; // Otherwise, decrement
+
   let result = await db.collection("posts").updateOne(
     { _id: new ObjectId(request.params.postID) },
     {
       $set: {
-        upvotes: request.body.upvotes,
+        upvotes: newUpvotes,
         downvoted: request.body.downvoted,
       },
     }
   );
+
   if (result.modifiedCount > 0) {
     response.json({
       success: true,
       message: "Downvote added!",
-      Upvotes: request.body.upvotes,
+      Upvotes: newUpvotes,
       Upvoted: request.body.upvoted,
       Downvoted: request.body.downvoted,
     });
