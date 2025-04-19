@@ -1,8 +1,11 @@
 import { auth, googleProvider } from "../config/firebase";
 import {
 	createUserWithEmailAndPassword,
+	signInWithEmailAndPassword,
 	signInWithPopup,
 	signOut,
+	updatePassword,
+	sendPasswordResetEmail,
 } from "firebase/auth";
 import { useState } from "react";
 
@@ -11,6 +14,31 @@ export const Auth = () => {
 	const [password, setPassword] = useState("");
 
 	console.log(auth?.currentUser?.email);
+
+	const resetPassword = async (email) => {
+		try {
+			await sendPasswordResetEmail(auth, email);
+			alert("Password reset email sent!");
+		} catch (err) {
+			console.error("Reset error:", err.message);
+			alert(err.message);
+		}
+	};
+
+	const changePassword = async (newPassword) => {
+		try {
+			const user = auth.currentUser;
+			if (user) {
+				await updatePassword(user, newPassword);
+				alert("Password updated successfully!");
+			} else {
+				alert("User not logged in");
+			}
+		} catch (err) {
+			console.log("Error updating password:", err.message);
+			alert(err.message);
+		}
+	};
 
 	const signUpNewUsers = async () => {
 		try {

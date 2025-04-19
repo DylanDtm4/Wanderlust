@@ -1,5 +1,6 @@
 const express = require("express");
 const database = require("./connect");
+const parser = require("./upload");
 const ObjectId = require("mongodb").ObjectId;
 
 let postRoutes = express.Router();
@@ -27,32 +28,36 @@ postRoutes.route("/posts/:postID").get(async (request, response) => {
   }
 });
 // #3 - Create One
-postRoutes.route("/posts").post(async (request, response) => {
+postRoutes.route("/create/post").post(async (request, response) => {
   let db = database.getDb();
+  console.log(request.body);
   let mongoObject = {
     userID: request.body.userID,
-    author: request.body.author,
+    username: request.body.username,
     title: request.body.title,
-    locations: request.body.locations,
+    location: request.body.location,
+    city: request.body.city,
     description: request.body.description,
-    uploads: request.body.uploads,
-    rated: request.body.rated,
-    rating: request.body.rating,
-    allRatings: request.body.allRatings,
-    numRatings: request.body.numRatings,
-    review: request.body.review,
-    allReviews: request.body.allReviews,
-    tags: request.body.tags,
+    picture: request.body.picture,
+    rated: false,
+    rating: Number(0),
+    allRatings: [],
+    numRatings: Number(0),
+    review: null,
+    allReviews: [],
+    activities: request.body.activities,
     bestTime: request.body.bestTime,
     duration: request.body.duration,
-    upvotes: request.body.upvotes,
-    upvoted: request.body.upvoted,
-    downvoted: request.body.downvoted,
-    saved: request.body.saved,
-    comments: request.body.comments,
-    budget: request.body.budget,
+    upvotes: Number(0),
+    upvoted: false,
+    downvoted: false,
+    saved: false,
+    comments: [],
+    lowerBudget: request.body.lowerBudget,
+    upperBudget: request.body.upperBudget,
     createdAt: new Date(),
     updatedAt: new Date(),
+    itinerary: request.body.itinerary,
   };
   let data = await db.collection("posts").insertOne(mongoObject);
   response.json(data);
@@ -63,16 +68,17 @@ postRoutes.route("/posts/:postID").put(async (request, response) => {
   let mongoObject = {
     $set: {
       title: request.body.title,
-      locations: request.body.locations,
+      location: request.body.location,
+      city: request.body.city,
       description: request.body.description,
-      uploads: request.body.uploads,
+      picture: request.body.picture,
       rated: request.body.rated,
       rating: request.body.rating,
       allRatings: request.body.allRatings,
       numRatings: request.body.numRatings,
       review: request.body.review,
       allReviews: request.body.allReviews,
-      tags: request.body.tags,
+      activities: request.body.activities,
       bestTime: request.body.bestTime,
       duration: request.body.duration,
       upvotes: request.body.upvotes,
@@ -80,8 +86,10 @@ postRoutes.route("/posts/:postID").put(async (request, response) => {
       downvoted: request.body.downvoted,
       saved: request.body.saved,
       comments: request.body.comments,
-      budget: request.body.budget,
+      lowerBudget: request.body.lowerBudget,
+      upperBudget: request.body.upperBudget,
       updatedAt: new Date(),
+      itinerary: request.body.itinerary,
     },
   };
   let data = await db
@@ -126,7 +134,7 @@ postRoutes
         {
           projection: {
             title: 1,
-            locations: 1,
+            location: 1,
             rating: 1,
             pictures: 1,
             saved: 1,
@@ -147,18 +155,20 @@ postRoutes.route("/get/click/posts/:postID").get(async (request, response) => {
       projection: {
         author: 1,
         title: 1,
-        locations: 1,
+        location: 1,
         rating: 1,
-        uploads: 1,
+        picture: 1,
         saved: 1,
         upvotes: 1,
         upvoted: 1,
         downvoted: 1,
-        tags: 1, // activities?
-        budget: 1,
+        activities: 1,
+        lowerBudget: 1,
+        upperBudget: 1,
         bestTime: 1,
         duration: 1,
         comments: 1,
+        itinerary: 1,
       },
     }
   );
@@ -242,20 +252,30 @@ postRoutes.route("/posts/rating/:postID").post(async (request, response) => {
 });
 
 // #10 - Update One (Upvoting post)
-postRoutes.route("/posts/upvote/postID").post(async (request, response) => {
+postRoutes.route("/posts/upvote/:postID").post(async (request, response) => {
   let db = database.getDb();
+  // Get the current post's upvotes
+  const post = await db
+    .collection("posts")
+    .findOne({ _id: new ObjectId(request.params.postID) });
+  const currentUpvotes = post ? post.upvotes : 0; // Default to 0 if post is not found
+
+  const newUpvotes = request.body.upvoted
+    ? currentUpvotes - 1 // If already upvoted, decrement
+    : currentUpvotes + 1; // Otherwise, increment
+
   let result = await db.collection("posts").updateOne(
     { _id: new ObjectId(request.params.postID) },
     {
-      $inc: { upvotes: 1 }, // Increase upvote count
-      $set: { upvoted: true, downvoted: false }, // upvoted, downvoted logic
+      $set: { upvotes: newUpvotes, upvoted: request.body.upvoted },
     }
   );
+
   if (result.modifiedCount > 0) {
     response.json({
       success: true,
       message: "Upvote added!",
-      Upvotes: request.body.upvotes,
+      Upvotes: newUpvotes,
       Upvoted: request.body.upvoted,
       Downvoted: request.body.downvoted,
     });
@@ -267,18 +287,31 @@ postRoutes.route("/posts/upvote/postID").post(async (request, response) => {
 // #11 - Update One (Downvoting post)
 postRoutes.route("/posts/downvote/:postID").post(async (request, response) => {
   let db = database.getDb();
+  // Get the current post's upvotes
+  const post = await db
+    .collection("posts")
+    .findOne({ _id: new ObjectId(request.params.postID) });
+  const currentUpvotes = post ? post.upvotes : 0; // Default to 0 if post is not found
+
+  const newUpvotes = request.body.downvoted
+    ? currentUpvotes + 1 // If already downvoted, increment
+    : currentUpvotes - 1; // Otherwise, decrement
+
   let result = await db.collection("posts").updateOne(
     { _id: new ObjectId(request.params.postID) },
     {
-      $inc: { upvotes: -1 }, // Decrease upvote count
-      $set: { upvoted: false, downvoted: true }, // upvoted, downvoted logic
+      $set: {
+        upvotes: newUpvotes,
+        downvoted: request.body.downvoted,
+      },
     }
   );
+
   if (result.modifiedCount > 0) {
     response.json({
       success: true,
       message: "Downvote added!",
-      Upvotes: request.body.upvotes,
+      Upvotes: newUpvotes,
       Upvoted: request.body.upvoted,
       Downvoted: request.body.downvoted,
     });
@@ -372,7 +405,7 @@ postRoutes.route("/get/posts/:location").get(async (request, response) => {
   let posts = await db
     .collection("posts")
     .find(
-      { locations: { $in: [location] } },
+      { location: { $in: [location] } },
       {
         projection: {
           author: 1,
@@ -384,6 +417,55 @@ postRoutes.route("/get/posts/:location").get(async (request, response) => {
     .toArray();
 
   response.json(posts);
+});
+
+// #17 - Add or update rating for a post
+postRoutes.route("/posts/rate/:postID").post(async (request, response) => {
+  let db = database.getDb();
+  let newRating = request.body.rating;
+
+  // Validate rating (ensure it is between 1 and 5)
+  if (!newRating || newRating < 1 || newRating > 5) {
+    return response
+      .status(400)
+      .json({ error: "Rating must be between 1 and 5" });
+  }
+
+  // Find the post by ID
+  let post = await db
+    .collection("posts")
+    .findOne({ _id: new ObjectId(request.params.postID) });
+
+  if (!post) {
+    return response.status(404).json({ error: "Post not found" });
+  }
+
+  // Add new rating to allRatings array and calculate the new average rating
+  let updatedAllRatings = [...post.allRatings, newRating]; // Append new rating
+  let updatedNumRatings = post.numRatings + 1; // Increment the number of ratings
+  let updatedRating =
+    updatedAllRatings.reduce((sum, r) => sum + r, 0) / updatedNumRatings; // Calculate the new average rating
+
+  // Update the post with the new rating information
+  let result = await db.collection("posts").updateOne(
+    { _id: new ObjectId(request.params.postID) },
+    {
+      $push: { allRatings: newRating }, // Append the new rating
+      $inc: { numRatings: 1 }, // Increment the number of ratings
+      $set: { rating: updatedRating.toFixed(2) }, // Update the average rating (rounded to 2 decimals)
+    }
+  );
+
+  if (result.modifiedCount > 0) {
+    response.json({
+      success: true,
+      message: "Rating added!",
+      newAvgRating: updatedRating.toFixed(2), // Send the new average rating
+      numRatings: updatedNumRatings, // Send the total number of ratings
+    });
+  } else {
+    response.status(500).json({ error: "Failed to update rating" });
+  }
 });
 
 module.exports = postRoutes;
