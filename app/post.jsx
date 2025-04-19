@@ -15,6 +15,8 @@ import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { BlurView } from "expo-blur";
 import { getAuth } from "firebase/auth";
 import { app } from "../config/firebase";
+import { ActivityIndicator } from "react-native";
+
 const { width, height } = Dimensions.get("window");
 
 const Post = () => {
@@ -45,6 +47,8 @@ const Post = () => {
 	const [hasUpvoted, setHasUpvoted] = useState(upvoted === "true");
 	const [hasDownvoted, setHasDownvoted] = useState(downvoted === "true");
 	const [votes, setVotes] = useState(Number(upvotes));
+	const [imageLoading, setImageLoading] = useState(true);
+	const [image, setImage] = useState();
 	const auth = getAuth(app);
 	const currentUser = auth.currentUser;
 	if (!currentUser) throw new Error("User not logged in");
@@ -103,6 +107,14 @@ const Post = () => {
 	};
 
 	useEffect(() => {
+		setImage(picture);
+		setImageLoading(false);
+	}, [picture]);
+
+	useEffect(() => {
+		setVotes(0);
+	}, [upvotes]);
+	useEffect(() => {
 		const fetchSavedPosts = async () => {
 			if (!userId) return;
 
@@ -125,13 +137,17 @@ const Post = () => {
 	});
 
 	const handleUpVote = async () => {
+		let newVotes = 0;
 		if (hasUpvoted) {
+			newVotes = votes - 1;
+			setVotes(newVotes);
 			setHasUpvoted(false);
-			setVotes((prev) => prev - 1);
 		} else {
-			setVotes((prev) => prev + (hasDownvoted ? 2 : 1));
+			newVotes = votes + (hasDownvoted ? 2 : 1);
+			setVotes(newVotes);
 			setHasUpvoted(true);
 		}
+		setHasDownvoted(false);
 		try {
 			await fetch(
 				`https://wanderlustbackend-s12f.onrender.com/posts/upvote/${postID}`,
@@ -141,7 +157,7 @@ const Post = () => {
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify({
-						upvotes: votes,
+						upvotes: newVotes,
 						upvoted: hasUpvoted,
 					}),
 				}
@@ -157,9 +173,9 @@ const Post = () => {
 			setHasDownvoted(false);
 		} else {
 			setVotes((prev) => prev - (hasUpvoted ? 2 : 1));
-			setHasUpvoted(false);
 			setHasDownvoted(true);
 		}
+		setHasUpvoted(false);
 		try {
 			await fetch(
 				`https://wanderlustbackend-s12f.onrender.com/posts/downvote/${postID}`,
@@ -212,10 +228,18 @@ const Post = () => {
 		<>
 			<Stack.Screen options={{ headerShown: false }} />
 			<View style={styles.container}>
+				{imageLoading && (
+					<View style={styles.loadingContainer}>
+						<ActivityIndicator size="large" color="#386BF6" />
+					</View>
+				)}
+
 				<ImageBackground
-					source={{ uri: picture }}
+					source={{ uri: image }}
 					style={styles.backgroundImage}
 					resizeMode="cover"
+					onLoadStart={() => setImageLoading(true)}
+					onLoadEnd={() => setImageLoading(false)}
 				>
 					{/* Blur Overlay */}
 					<View style={styles.blurOverlay} />
@@ -596,6 +620,15 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		paddingTop: 8,
 		opacity: 0.8,
+	},
+	loadingContainer: {
+		position: "absolute",
+		width: "100%",
+		height: "100%",
+		justifyContent: "center",
+		alignItems: "center",
+		backgroundColor: "#1E1E1E",
+		zIndex: 1,
 	},
 });
 

@@ -1,4 +1,5 @@
 import React from "react";
+import { useState, useEffect } from "react";
 import { useRouter, Stack } from "expo-router";
 import {
 	View,
@@ -11,38 +12,173 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import profile1 from "../assets/images/profile1.jpg";
-import fuji from "../assets/images/fuji.png";
-import paris from "../assets/images/paris.png";
-import profile6 from "../assets/images/profile6.jpg";
-import profile7 from "../assets/images/profile7.webp";
-import profile4 from "../assets/images/profile4.webp";
+import { getAuth } from "firebase/auth";
+import { app } from "../config/firebase";
+import { UserInterfaceIdiom } from "expo-constants";
 import gridPosts from "../assets/images/gridIcon.png";
 
 const screenWidth = Dimensions.get("window").width;
-const cardSize = (screenWidth - 30) / 2;
+const cardSize = (screenWidth - 40) / 3;
 
 const Profile = () => {
+	const [user, setUser] = useState();
+	const [posts, setPosts] = useState([]);
+	const [createdPosts, setCreatedPosts] = useState([]);
 	const router = useRouter();
+
+	const auth = getAuth(app);
+	const currentUser = auth.currentUser;
+
+	if (!currentUser) {
+		console.log("No user is signed in.");
+		return;
+	}
+
+	const userId = currentUser.uid;
 
 	const handleAddCardPress = () => {
 		router.push("/create");
 	};
 
+	const handleCardPress = (
+		postID,
+		picture,
+		location,
+		username,
+		city,
+		bestTime,
+		upvotes,
+		upvoted,
+		downvoted,
+		duration,
+		lowerBudget,
+		upperBudget,
+		activities,
+		comments,
+		saved,
+		rating,
+		rated,
+		title,
+		description,
+		itinerary
+	) => {
+		router.push({
+			pathname: "/post",
+			params: {
+				postID,
+				picture,
+				location,
+				username,
+				city,
+				bestTime,
+				upvotes,
+				upvoted,
+				downvoted,
+				duration,
+				lowerBudget,
+				upperBudget,
+				activities,
+				comments,
+				saved,
+				rating,
+				rated,
+				title,
+				description,
+				itinerary,
+			},
+		});
+	};
+
+	useEffect(() => {
+		const fetchUser = async () => {
+			try {
+				const usernameRes = await fetch(
+					`https://wanderlustbackend-s12f.onrender.com/users/${userId}`
+				);
+				const userData = await usernameRes.json();
+				setUser(userData);
+			} catch (err) {
+				console.error("User fetch error:", err);
+			}
+		};
+
+		fetchUser();
+	}, []);
+
+	useEffect(() => {
+		if (!user) return;
+
+		const fetchPosts = async () => {
+			try {
+				const postsRes = await fetch(
+					`https://wanderlustbackend-s12f.onrender.com/posts`
+				);
+				const postsData = await postsRes.json();
+
+				const formattedPosts = postsData.map((p) => ({
+					id: p._id,
+					picture: p.picture,
+					location: p.location,
+					username: p.username,
+					city: p.city,
+					bestTime: p.bestTime,
+					upvotes: p.upvotes,
+					upvoted: p.upvoted,
+					downvoted: p.downvoted,
+					duration: p.duration,
+					lowerBudget: p.lowerBudget,
+					upperBudget: p.upperBudget,
+					activities: p.activities,
+					comments: p.comments,
+					saved: p.saved,
+					rating: p.rating,
+					rated: p.rated,
+					title: p.title,
+					description: p.description,
+					itinerary: p.itinerary,
+				}));
+
+				const userCreatedPosts = formattedPosts.filter(
+					(post) => post.username === user.username
+				);
+
+				setPosts(formattedPosts);
+				setCreatedPosts(userCreatedPosts);
+			} catch (err) {
+				console.error("Posts fetch error:", err);
+			}
+		};
+
+		fetchPosts();
+	});
+	if (!user) {
+		return (
+			<View style={styles.container}>
+				<Text style={{ textAlign: "center", marginTop: 100 }}>Loading...</Text>
+			</View>
+		);
+	}
 	return (
 		<>
-			<Stack.Screen options={{ headerShown: false }} />
+			<Stack.Screen
+				options={{
+					headerShown: false,
+					statusBarAnimation: "slide",
+					statusBarStyle: "dark",
+				}}
+			/>
 			<View style={styles.container}>
 				<View style={styles.username}>
-					<Text style={styles.usernameText}>john_doe</Text>
+					<Text style={styles.usernameText}>{user.username}</Text>
 				</View>
 
 				<View style={styles.topContainer}>
 					<Image source={profile1} style={styles.profileImage} />
 					<View style={styles.statsContainer}>
 						{[
-							{ label: "Posts", value: 54 },
-							{ label: "Followers", value: 834 },
-							{ label: "Following", value: 162 },
+							{ label: "Posts", value: createdPosts.length },
+							{ label: "Followers", value: user.friends.length },
+							{ label: "Following", value: user.following.length },
 						].map((item, idx) => (
 							<View key={idx} style={styles.statItem}>
 								<Text style={styles.statNumber}>{item.value}</Text>
@@ -54,9 +190,8 @@ const Profile = () => {
 
 				<View style={styles.profileInfo}>
 					<View style={styles.nameBioContainer}>
-						<Text style={styles.nameBold}>John Doe</Text>
-						<Text style={styles.bio}>Travel blogs in Texas</Text>
-						<Text style={styles.bio}>Follow me for an adventure</Text>
+						<Text style={styles.nameBold}>{user.username}</Text>
+						<Text style={styles.bio}>{user.bio}</Text>
 					</View>
 					<TouchableOpacity
 						style={styles.editButton}
@@ -73,22 +208,50 @@ const Profile = () => {
 				<View style={styles.solidLine} />
 
 				<ScrollView contentContainerStyle={styles.gridContainer}>
-					<View style={styles.row}>
-						<Card image={fuji} location="Fuji, Tokyo" />
-						<Card image={profile6} location="Aspen, CO" />
-					</View>
-					<View style={styles.row}>
-						<Card image={profile7} location="Toronto, ON" />
-						<Card image={paris} location="Paris, France" />
-					</View>
-					<View style={styles.row}>
-						<Card image={profile4} location="Beijing, China" />
-						<TouchableOpacity style={styles.card} onPress={handleAddCardPress}>
-							<View style={styles.addButton}>
-								<Ionicons name="add-circle" size={40} color="#386BF6" />
-								<Text style={styles.locationText}>Add Place</Text>
+					<View style={styles.gridRowWrap}>
+						{createdPosts.map((post) => (
+							<View key={post.id} style={styles.cardWrapper}>
+								<Card
+									image={{ uri: post.picture }}
+									location={post.title}
+									onPress={() =>
+										handleCardPress(
+											post.id,
+											post.picture,
+											post.location,
+											post.username,
+											post.city,
+											post.bestTime,
+											post.upvotes,
+											post.upvoted,
+											post.downvoted,
+											post.duration,
+											post.lowerBudget,
+											post.upperBudget,
+											post.activities,
+											post.comments,
+											post.saved,
+											post.rating,
+											post.rated,
+											post.title,
+											post.description,
+											JSON.stringify(post.itinerary)
+										)
+									}
+								/>
 							</View>
-						</TouchableOpacity>
+						))}
+						<View style={styles.cardWrapper}>
+							<TouchableOpacity
+								style={styles.card}
+								onPress={handleAddCardPress}
+							>
+								<View style={styles.addButton}>
+									<Ionicons name="add-circle" size={40} color="#386BF6" />
+									<Text style={styles.locationText}>Add Place</Text>
+								</View>
+							</TouchableOpacity>
+						</View>
 					</View>
 				</ScrollView>
 			</View>
@@ -96,11 +259,11 @@ const Profile = () => {
 	);
 };
 
-const Card = ({ image, location }) => (
-	<View style={styles.card}>
+const Card = ({ image, location, onPress }) => (
+	<TouchableOpacity style={styles.card} onPress={onPress}>
 		<Image source={image} style={styles.image} />
 		<Text style={styles.locationText}>{location}</Text>
-	</View>
+	</TouchableOpacity>
 );
 
 export default Profile;
@@ -235,5 +398,15 @@ const styles = StyleSheet.create({
 	addButton: {
 		justifyContent: "center",
 		alignItems: "center",
+	},
+	gridRowWrap: {
+		flexDirection: "row",
+		flexWrap: "wrap",
+		justifyContent: "space-between",
+	},
+
+	cardWrapper: {
+		marginBottom: 15,
+		width: cardSize,
 	},
 });

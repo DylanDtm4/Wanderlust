@@ -24,6 +24,7 @@ const Home = () => {
 	const [activeComment, setActiveComment] = useState(null);
 	const [savedPosts, setSavedPosts] = useState([]);
 	const [savedBg, setsavedBg] = useState({});
+	const [user, setUser] = useState();
 	const auth = getAuth(app);
 	const currentUser = auth.currentUser;
 
@@ -187,6 +188,7 @@ const Home = () => {
 					`https://wanderlustbackend-s12f.onrender.com/users/${userId}`
 				);
 				const data = await res.json();
+				setUser(data.username);
 				if (data.savedPosts) {
 					setSavedPosts(data.savedPosts);
 				} else {
@@ -202,6 +204,7 @@ const Home = () => {
 
 	const filteredPosts = posts.filter(
 		(post) =>
+			// post.username !== user &&
 			post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			post.city.toLowerCase().includes(searchQuery.toLowerCase())
 	);
@@ -315,8 +318,8 @@ const Home = () => {
 										styles.heartButton,
 										{
 											backgroundColor: savedPosts.includes(post.id)
-												? "white"
-												: "rgba(0, 0, 0, 0.4)",
+												? "#386BF6"
+												: "rgba(255, 255, 255, 0.1)",
 										}, // Change background color
 									]}
 									onPress={() => {
@@ -327,9 +330,9 @@ const Home = () => {
 									}}
 								>
 									<Feather
-										name="heart"
-										size={25}
-										color={savedPosts.includes(post.id) ? "red" : "white"} // Change color dynamically
+										name="bookmark"
+										size={24}
+										color="white" // Change color dynamically
 									/>
 								</TouchableOpacity>
 
@@ -508,7 +511,7 @@ const styles = StyleSheet.create({
 		position: "absolute",
 		top: 20,
 		right: 20,
-		backgroundColor: "rgba(0, 0, 0, 0.4)",
+		backgroundColor: "rgba(255, 255, 255, 0.3)",
 		padding: 12,
 		borderRadius: 25,
 		shadowColor: "#000",
