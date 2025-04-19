@@ -2,244 +2,370 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
-  TouchableOpacity,
   TextInput,
-  ImageBackground,
+  TouchableOpacity,
   ScrollView,
-  Dimensions,
-  Image,
+  StyleSheet,
+  SafeAreaView,
 } from "react-native";
+import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import Logo from "../assets/images/Logo2.png";
-
-const { width, height } = Dimensions.get("window");
+import { getAuth } from "firebase/auth";
 
 const CreateItinerary = () => {
+  const { picture, inputData } = useLocalSearchParams();
+  const formData = JSON.parse(inputData);
   const router = useRouter();
-  const [location, setLocation] = useState("");
+  const [days, setDays] = useState([]);
   const [dayTitle, setDayTitle] = useState("");
-  const [activities, setActivities] = useState([{ time: "", activity: "", icon: "" }]);
-
-  const handleAddActivity = () => {
-    setActivities([...activities, { time: "", activity: "", icon: "" }]);
+  const [dayNumber, setDayNumber] = useState("");
+  const [activityText, setActivityText] = useState("");
+  const [activityTime, setActivityTime] = useState("");
+  const [activities, setActivities] = useState([]);
+  const addActivity = () => {
+    if (activityTime && activityText) {
+      setActivities([
+        ...activities,
+        { time: activityTime, activity: activityText },
+      ]);
+      setActivityText("");
+      setActivityTime("");
+    }
   };
 
-  const handleChangeActivity = (index, field, value) => {
+  const deleteActivity = (index) => {
     const updated = [...activities];
-    updated[index][field] = value;
+    updated.splice(index, 1);
     setActivities(updated);
   };
 
-  const handleSubmit = () => {
-    router.push({
-      pathname: "/Itinerary",
-      params: {
-        image: "https://source.unsplash.com/featured/?travel",
-        location: location || "New Trip",
-      },
+  const addDay = () => {
+    if (dayNumber && dayTitle && activities.length > 0) {
+      const newDay = {
+        day: parseInt(dayNumber),
+        title: dayTitle,
+        activities: activities,
+      };
+      setDays([...days, newDay]);
+      setDayNumber("");
+      setDayTitle("");
+      setActivities([]);
+    }
+  };
+
+  const deleteDay = (index) => {
+    const updated = [...days];
+    updated.splice(index, 1);
+    setDays(updated);
+  };
+  const uploadToCloudinary = async (localUri) => {
+    const data = new FormData();
+
+    data.append("file", {
+      uri: localUri,
+      type: "image/jpeg",
+      name: "upload.jpg",
     });
+    data.append("upload_preset", "ml_default");
+
+    try {
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/doynqhkzz/image/upload",
+        {
+          method: "POST",
+          body: data,
+        }
+      );
+
+      const result = await res.json();
+      return result.secure_url; // or result.url
+    } catch (err) {
+      console.error("Cloudinary upload error:", err);
+      alert("Image upload failed.");
+    }
+  };
+  const handlePost = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) {
+        throw new Error("User is not logged in.");
+      }
+
+      // Step 1: Get the username from the backend using userID
+      const response = await fetch(
+        `https://wanderlustbackend-s12f.onrender.com/user/username/${user.uid}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to retrieve username");
+      }
+
+      const data = await response.json();
+      const username = data.username;
+
+      // Step 2: Upload image to Cloudinary
+      const imageUrl = await uploadToCloudinary(picture);
+      if (!imageUrl) throw new Error("Failed to upload image to Cloudinary");
+
+      // Step 3: Post the data to your backend MongoDB
+      const postResponse = await fetch(
+        "https://wanderlustbackend-s12f.onrender.com/create/post", // Remember to fix the URL
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userID: user.uid,
+            username: username,
+            picture: imageUrl,
+            title: formData.title,
+            location: formData.location,
+            city: formData.city,
+            bestTime: formData.bestTime,
+            duration: formData.duration,
+            lowerBudget: formData.lowerBudget,
+            upperBudget: formData.upperBudget,
+            activities: formData.activities,
+            description: formData.description,
+            itinerary: days,
+          }),
+        }
+      );
+
+      if (!postResponse.ok) throw new Error("Failed to create post in DB");
+      router.push("/");
+      alert("Post created successfully!");
+    } catch (err) {
+      console.error("Post error:", err);
+      alert("Error creating post: " + err.message);
+    }
   };
 
   return (
-    <>
-      <Image source={Logo} style={styles.logo} resizeMode="contain" />
-      <ImageBackground
-        source={{ uri: "https://source.unsplash.com/featured/?travel" }}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      >
-        <View style={styles.overlay} />
-        <ScrollView contentContainerStyle={styles.container}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()}>
+    <SafeAreaView style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerTitle: "Create Post",
+          headerStyle: {
+            backgroundColor: "#1E1E1E",
+          },
+          headerTintColor: "#FFFFFF",
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => router.push("/nextCreate")}
+              style={styles.backButton}
+            >
               <Feather name="arrow-left" size={24} color="#FFFFFF" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Create Itinerary</Text>
-            <View style={{ width: 24 }} />
-          </View>
+          ),
+        }}
+      />
+      <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <Text style={styles.header}>Create New Itinerary</Text>
 
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Day Number</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter location"
-            placeholderTextColor="#aaa"
-            value={location}
-            onChangeText={setLocation}
+            placeholder="Enter day number"
+            placeholderTextColor="#666"
+            value={dayNumber}
+            onChangeText={setDayNumber}
+            keyboardType="numeric"
           />
+        </View>
 
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Day Title</Text>
           <TextInput
             style={styles.input}
-            placeholder="Day Title (e.g. 'Adventure Day')"
-            placeholderTextColor="#aaa"
+            placeholder="Enter title"
+            placeholderTextColor="#666"
             value={dayTitle}
             onChangeText={setDayTitle}
           />
+        </View>
 
-          {activities.map((act, index) => (
-            <View key={index} style={styles.activityRow}>
-              <TextInput
-                style={styles.smallInput}
-                placeholder="Time"
-                placeholderTextColor="#ccc"
-                value={act.time}
-                onChangeText={(text) => handleChangeActivity(index, "time", text)}
-              />
-              <TextInput
-                style={styles.bigInput}
-                placeholder="Activity"
-                placeholderTextColor="#ccc"
-                value={act.activity}
-                onChangeText={(text) => handleChangeActivity(index, "activity", text)}
-              />
-              <TextInput
-                style={styles.iconInput}
-                placeholder="Icon"
-                placeholderTextColor="#ccc"
-                value={act.icon}
-                onChangeText={(text) => handleChangeActivity(index, "icon", text)}
-              />
-            </View>
-          ))}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Activity Time</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. 9:00 AM"
+            placeholderTextColor="#666"
+            value={activityTime}
+            onChangeText={setActivityTime}
+          />
+        </View>
 
-          <TouchableOpacity onPress={handleAddActivity} style={styles.addButton}>
-            <Feather name="plus" size={20} color="#386BF6" />
-            <Text style={styles.addButtonText}>Add Activity</Text>
-          </TouchableOpacity>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Activity Description</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. Visit Eiffel Tower"
+            placeholderTextColor="#666"
+            value={activityText}
+            onChangeText={setActivityText}
+          />
+        </View>
 
-          <TouchableOpacity onPress={handleSubmit}>
-            <View style={styles.saveContainer}>
-              <Text style={styles.saveButton}>CREATE</Text>
-              <View style={styles.saveButtonIcon}>
-                <Feather name="arrow-right" size={20} color="#386BF6" />
+        <TouchableOpacity style={styles.secondaryButton} onPress={addActivity}>
+          <Feather name="plus-circle" size={20} color="#FFFFFF" />
+          <Text style={styles.buttonText}>Add Activity</Text>
+        </TouchableOpacity>
+
+        {activities.map((a, i) => (
+          <View key={i} style={styles.activityPreviewContainer}>
+            <Text style={styles.activityPreview}>
+              • {a.time} - {a.activity}
+            </Text>
+            <TouchableOpacity onPress={() => deleteActivity(i)}>
+              <Feather name="trash-2" size={18} color="#FF6666" />
+            </TouchableOpacity>
+          </View>
+        ))}
+
+        <TouchableOpacity style={styles.postButton} onPress={addDay}>
+          <Text style={styles.postButtonText}>Add Day to Itinerary</Text>
+        </TouchableOpacity>
+
+        {days.length > 0 && (
+          <>
+            <Text style={styles.sectionHeader}>Current Itinerary:</Text>
+            {days.map((d, i) => (
+              <View key={i} style={styles.dayBlock}>
+                <View style={styles.dayHeader}>
+                  <Text style={styles.dayTitle}>
+                    Day {d.day}: {d.title}
+                  </Text>
+                  <TouchableOpacity onPress={() => deleteDay(i)}>
+                    <Feather name="trash-2" size={18} color="#FF6666" />
+                  </TouchableOpacity>
+                </View>
+                {d.activities.map((a, j) => (
+                  <Text key={j} style={styles.dayActivity}>
+                    - {a.time} • {a.activity}
+                  </Text>
+                ))}
               </View>
-            </View>
+            ))}
+          </>
+        )}
+
+        {days.length > 0 && (
+          <TouchableOpacity style={styles.postButton} onPress={handlePost}>
+            <Text style={styles.postButtonText}>POST</Text>
           </TouchableOpacity>
-        </ScrollView>
-      </ImageBackground>
-    </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    paddingTop: 80,
-    zIndex: 1,
-  },
-  logo: {
-    position: "absolute",
-    top: 50,
-    right: 20,
-    width: 55,
-    height: 55,
-    zIndex: 2,
-    borderRadius: 50,
-  },
-  backgroundImage: {
+    backgroundColor: "#1E1E1E",
     flex: 1,
-    width: "100%",
-    height: "100%",
-  },
-  overlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.65)",
   },
   header: {
+    fontSize: 24,
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontFamily: "Poppins",
+    marginBottom: 20,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontFamily: "Poppins",
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: "#2A2A2A",
+    borderRadius: 12,
+    padding: 12,
+    color: "#FFFFFF",
+    fontFamily: "Poppins",
+    fontSize: 16,
+  },
+  sectionHeader: {
+    color: "#386BF6",
+    fontSize: 18,
+    fontWeight: "600",
+    fontFamily: "Poppins",
+    marginTop: 30,
+    marginBottom: 10,
+  },
+  secondaryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#386BF6",
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 10,
+    justifyContent: "center",
+  },
+  postButton: {
+    backgroundColor: "#386BF6",
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 20,
+    alignItems: "center",
+  },
+  postButtonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontFamily: "Poppins",
+    fontWeight: "600",
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontFamily: "Poppins",
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  activityPreviewContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginTop: 6,
   },
-  headerTitle: {
-    fontFamily: "Poppins",
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  input: {
-    backgroundColor: "#333",
-    padding: 12,
-    borderRadius: 10,
-    color: "#fff",
-    marginBottom: 15,
-    fontFamily: "Poppins",
-  },
-  activityRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  smallInput: {
-    flex: 1,
-    marginRight: 5,
-    backgroundColor: "#333",
-    color: "#fff",
-    borderRadius: 10,
-    padding: 10,
-  },
-  bigInput: {
-    flex: 2,
-    marginRight: 5,
-    backgroundColor: "#333",
-    color: "#fff",
-    borderRadius: 10,
-    padding: 10,
-  },
-  iconInput: {
-    flex: 1,
-    backgroundColor: "#333",
-    color: "#fff",
-    borderRadius: 10,
-    padding: 10,
-  },
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "center",
-    marginVertical: 20,
-    backgroundColor: "#fff",
-    padding: 10,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-  },
-  addButtonText: {
-    color: "#386BF6",
-    marginLeft: 8,
-    fontWeight: "600",
+  activityPreview: {
+    color: "#CCCCCC",
     fontSize: 14,
-  },
-  saveContainer: {
-    flexDirection: "row",
-    alignSelf: "center",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "white",
-    padding: 20,
-    width: "80%",
-    borderRadius: 50,
-    marginTop: 10,
-    marginBottom: 30,
-  },
-  saveButton: {
     fontFamily: "Poppins",
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#386BF6",
-    marginRight: 8,
-    zIndex: 1,
   },
-  saveButtonIcon: {
-    backgroundColor: "rgba(56, 107, 246, 0.1)",
-    width: 24,
-    height: 24,
+  dayBlock: {
+    backgroundColor: "#2A2A2A",
+    padding: 16,
     borderRadius: 12,
-    justifyContent: "center",
+    marginBottom: 12,
+  },
+  dayHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 6,
+  },
+  dayTitle: {
+    color: "#FFFFFF",
+    fontFamily: "Poppins",
+    fontWeight: "700",
+  },
+  dayActivity: {
+    color: "#CCCCCC",
+    fontSize: 14,
+    fontFamily: "Poppins",
+  },
+  backButton: {
+    marginLeft: 16,
   },
 });
 

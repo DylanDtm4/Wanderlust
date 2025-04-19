@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs, Slot, useRouter } from 'expo-router';
 import { View, Animated, StyleSheet } from 'react-native';
 import TabBar from '../components/TabBar';
 import LoginScreen from './LoginScreen';
@@ -28,7 +28,7 @@ const _layout = () => {
           duration: 500,
           useNativeDriver: true,
         }).start(() => {
-          setIsAppReady(true);
+          setIsAppReady(true); // Mark the layout as ready after login animation
         });
       });
     }, 2000);
@@ -41,13 +41,11 @@ const _layout = () => {
 
   if (!isAppReady && appState === 'login') {
     return (
-      <View style={styles.whiteBackground}>
-        <Animated.View
-          style={[styles.fullScreen, { transform: [{ translateX: loginPosition }] }]}
-        >
-          <LoginScreen setIsAuthenticated={setIsAuthenticated} />
-        </Animated.View>
-      </View>
+      <Animated.View
+        style={[styles.fullScreen, { transform: [{ translateX: loginPosition }] }]}
+      >
+        <LoginScreen setIsAuthenticated={setIsAuthenticated} />
+      </Animated.View>
     );
   }
 
@@ -94,10 +92,6 @@ const _layout = () => {
 const styles = StyleSheet.create({
   fullScreen: {
     flex: 1,
-  },
-  whiteBackground: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
   },
 });
 

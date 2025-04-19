@@ -82,11 +82,6 @@ const Messages = () => {
           },
           headerTintColor: '#FFFFFF',
           headerShadowVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <Feather name="arrow-left" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-          ),
         }}
       />
       <View style={styles.container}>
@@ -133,9 +128,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1E1E1E',
-  },
-  backButton: {
-    marginLeft: 16,
   },
   searchContainer: {
     flexDirection: 'row',

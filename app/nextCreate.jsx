@@ -10,36 +10,8 @@ import {
 } from "react-native";
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import { getAuth } from "firebase/auth";
 
 const NextCreate = () => {
-  const uploadToCloudinary = async (localUri) => {
-    const data = new FormData();
-
-    data.append("file", {
-      uri: localUri,
-      type: "image/jpeg",
-      name: "upload.jpg",
-    });
-    data.append("upload_preset", "ml_default");
-
-    try {
-      const res = await fetch(
-        "https://api.cloudinary.com/v1_1/doynqhkzz/image/upload",
-        {
-          method: "POST",
-          body: data,
-        }
-      );
-
-      const result = await res.json();
-      return result.secure_url; // or result.url
-    } catch (err) {
-      console.error("Cloudinary upload error:", err);
-      alert("Image upload failed.");
-    }
-  };
-
   const { picture } = useLocalSearchParams();
 
   const router = useRouter();
@@ -60,74 +32,21 @@ const NextCreate = () => {
   );
 
   const handlePost = async () => {
-    try {
-      const auth = getAuth();
-      const user = auth.currentUser;
-
-      if (!user) {
-        throw new Error("User is not logged in.");
-      }
-
-      // Step 1: Get the username from the backend using userID
-      const response = await fetch(
-        `https://wanderlustbackend-s12f.onrender.com/user/username/${user.uid}`
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to retrieve username");
-      }
-
-      const data = await response.json();
-      const username = data.username;
-
-      // Step 2: Upload image to Cloudinary
-      const imageUrl = await uploadToCloudinary(picture);
-      if (!imageUrl) throw new Error("Failed to upload image to Cloudinary");
-
-      // Step 3: Post the data to your backend MongoDB
-      const postResponse = await fetch(
-        "https://wanderlustbackend-s12f.onrender.com/create/post", // Remember to fix the URL
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userID: user.uid,
-            username: username,
-            picture: imageUrl,
-            title: formData.title,
-            location: formData.location,
-            city: formData.city,
-            bestTime: formData.bestTime,
-            duration: formData.duration,
-            lowerBudget: formData.lowerBudget,
-            upperBudget: formData.upperBudget,
-            activities: formData.activities,
-            description: formData.description,
-          }),
-        }
-      );
-
-      if (!postResponse.ok) throw new Error("Failed to create post in DB");
-
-      setFormData({
-        title: "",
-        location: "",
-        city: "",
-        bestTime: "",
-        duration: "",
-        lowerBudget: "",
-        upperBudget: "",
-        activities: "",
-        description: "",
-      });
-      router.push("/");
-      alert("Post created successfully!");
-    } catch (err) {
-      console.error("Post error:", err);
-      alert("Error creating post: " + err.message);
-    }
+    router.push({
+      pathname: "/createItinerary",
+      params: { picture: picture, inputData: JSON.stringify(formData) },
+    });
+    /* setFormData({
+      title: "",
+      location: "",
+      city: "",
+      bestTime: "",
+      duration: "",
+      lowerBudget: "",
+      upperBudget: "",
+      activities: "",
+      description: "",
+    })*/
   };
 
   return (
@@ -142,7 +61,7 @@ const NextCreate = () => {
           headerShadowVisible: false,
           headerLeft: () => (
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={() => router.push("/create")}
               style={styles.backButton}
             >
               <Feather name="arrow-left" size={24} color="#FFFFFF" />
@@ -280,7 +199,7 @@ const NextCreate = () => {
           onPress={handlePost}
           disabled={!allFieldsFilled}
         >
-          <Text style={styles.postButtonText}>Post</Text>
+          <Text style={styles.postButtonText}>Next</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
