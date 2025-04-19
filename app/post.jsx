@@ -32,45 +32,19 @@ const Post = () => {
     lowerBudget,
     upperBudget,
     activities,
-    // comments,
+    comments,
     saved,
     rating,
     rated,
     title,
     description,
+    itinerary,
   } = useLocalSearchParams();
-  /* comments layout {
-    text: "Have a nice day bro",
-    username: "TravelLover123",
-    avatar: require("../assets/images/profile1.jpg"),
-  } */
-  const comments = [
-    {
-      text: "Have a nice day bro",
-      username: "TravelLover123",
-      avatar: require("../assets/images/profile1.jpg"),
-    },
-    {
-      text: "Wow this Trip sounds fun",
-      username: "AdventureSeeker",
-      avatar: require("../assets/images/profile2.jpg"),
-    },
-    {
-      text: "Wow this is amazing",
-      username: "Wanderer22",
-      avatar: require("../assets/images/profile3.jpg"),
-    },
-  ];
   const [isSaved, setIsSaved] = useState(null);
   const [savedPosts, setSavedPosts] = useState([]);
   const [hasUpvoted, setHasUpvoted] = useState(upvoted === "true");
   const [hasDownvoted, setHasDownvoted] = useState(downvoted === "true");
-
   const [votes, setVotes] = useState(upvotes);
-  const [currentCommentIndex, setCurrentCommentIndex] = useState(0);
-  const [showAllComments, setShowAllComments] = useState(false);
-  const [fadeAnim] = useState(new Animated.Value(1));
-  const [slideAnim] = useState(new Animated.Value(0));
   const auth = getAuth(app);
   const currentUser = auth.currentUser;
   if (!currentUser) throw new Error("User not logged in");
@@ -146,27 +120,8 @@ const Post = () => {
         console.error("Fetch error:", err);
       }
     };
-
-    const interval = setInterval(() => {
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }).start(() => {
-        setCurrentCommentIndex(
-          (prevIndex) => (prevIndex + 1) % comments.length
-        );
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }).start();
-      });
-    }, 5000);
-
     fetchSavedPosts();
     setIsSaved(savedPosts.includes(postID));
-    return () => clearInterval(interval);
   });
 
   const handleUpVote = async () => {
@@ -224,29 +179,6 @@ const Post = () => {
     }
   };
 
-  const handleMessage = () => {
-    router.push("/messages");
-  };
-  const handleFriends = () => {
-    router.push("/friends");
-  };
-
-  const toggleComments = () => {
-    if (showAllComments) {
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => setShowAllComments(false));
-    } else {
-      setShowAllComments(true);
-      Animated.timing(slideAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }
-  };
   const router = useRouter();
   const handleExplore = () => {
     router.push({
@@ -269,19 +201,12 @@ const Post = () => {
         saved,
         rating,
         rated,
+        title,
+        description,
+        itinerary,
       },
     });
   };
-
-  const renderComment = (comment, index) => (
-    <View key={index} style={styles.comment}>
-      <Image style={styles.commentAvatar} source={comment.avatar} />
-      <View style={styles.commentContent}>
-        <Text style={styles.commentUsername}>{comment.username}</Text>
-        <Text style={styles.commentText}>{comment.text}</Text>
-      </View>
-    </View>
-  );
 
   return (
     <>
@@ -328,7 +253,7 @@ const Post = () => {
             {/* username Info */}
             <View style={styles.usernameInfo}>
               <Text style={styles.byText}>By: {username}</Text>
-              <Text style={styles.locationTitle}>{location}</Text>
+              <Text style={styles.locationTitle}>{title}</Text>
             </View>
 
             {/* Location Info */}
@@ -378,66 +303,36 @@ const Post = () => {
                 <Text style={styles.fieldLabel}>Activities</Text>
                 <Text style={styles.fieldValue}>{activities}</Text>
               </View>
+              <Text style={styles.descriptionText}>{description}</Text>
             </View>
-
-            {/* Action Buttons */}
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={handleFriends}
-              >
-                <Text style={styles.actionButtonText}>Find Friends</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={handleMessage}
-              >
-                <Text style={styles.actionButtonText}>Message</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Comments Section */}
-            <TouchableOpacity onPress={toggleComments}>
-              <View style={styles.commentsSection}>
-                <View style={styles.commentHeader}>
-                  <Text style={styles.commentsTitle}>Comments</Text>
-                  <Text style={styles.commentCount}>3.2k</Text>
-                </View>
-
-                {!showAllComments ? (
-                  <Animated.View style={{ opacity: fadeAnim }}>
-                    {renderComment(comments[currentCommentIndex], 0)}
-                  </Animated.View>
-                ) : (
-                  <Animated.View
-                    style={{
-                      opacity: slideAnim,
-                      transform: [
-                        {
-                          translateY: slideAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [20, 0],
-                          }),
-                        },
-                      ],
-                    }}
-                  >
-                    {comments.map((comment, index) =>
-                      renderComment(comment, index)
-                    )}
-                    <View style={styles.viewMoreContainer}>
-                      <Text style={styles.viewMoreText}>
-                        View all 3.2k comments
-                      </Text>
-                      <Feather name="chevron-down" size={16} color="#FFFFFF" />
-                    </View>
-                  </Animated.View>
-                )}
-              </View>
-            </TouchableOpacity>
 
             {/* BOOK SECTION */}
-            <TouchableOpacity onPress={handleExplore}>
+            <TouchableOpacity
+              onPress={() =>
+                handleExplore(
+                  postID,
+                  picture,
+                  location,
+                  username,
+                  city,
+                  bestTime,
+                  upvotes,
+                  upvoted,
+                  downvoted,
+                  duration,
+                  lowerBudget,
+                  upperBudget,
+                  activities,
+                  comments,
+                  saved,
+                  rating,
+                  rated,
+                  title,
+                  description,
+                  itinerary
+                )
+              }
+            >
               <View style={styles.bookContainer}>
                 <Text style={styles.bookButton}>Explore!</Text>
                 <View style={styles.bookButtonIcon}>
@@ -694,6 +589,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
+  },
+  descriptionText: {
+    color: "white",
+    fontSize: 13,
+    textAlign: "center",
+    paddingTop: 8,
+    opacity: 0.8,
   },
 });
 

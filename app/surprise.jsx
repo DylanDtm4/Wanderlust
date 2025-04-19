@@ -55,7 +55,8 @@ const SurprisePage = () => {
     rating,
     rated,
     title,
-    description
+    description,
+    itinerary
   ) => {
     router.push({
       pathname: "/post",
@@ -79,6 +80,7 @@ const SurprisePage = () => {
         rated,
         title,
         description,
+        itinerary,
       },
     });
   };
@@ -162,7 +164,8 @@ const SurprisePage = () => {
           activities: p.activities,
           comments: p.comments,
           rated: p.rated,
-          description: p.description || "",
+          description: p.description,
+          itinerary: p.itinerary,
         }));
 
         setPosts(formattedPosts);
@@ -287,7 +290,7 @@ const SurprisePage = () => {
             handleCardPress(
               currentLocation.id,
               currentLocation.picture,
-              currentLocation.title,
+              currentLocation.location,
               currentLocation.username,
               currentLocation.city,
               currentLocation.bestTime,
@@ -301,7 +304,10 @@ const SurprisePage = () => {
               currentLocation.comments,
               currentLocation.saved,
               currentLocation.rating,
-              currentLocation.description
+              currentLocation.rated,
+              currentLocation.title,
+              currentLocation.description,
+              currentLocation.itinerary
             )
           }
           activeOpacity={0.8}

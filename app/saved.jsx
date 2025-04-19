@@ -70,6 +70,9 @@ const Saved = () => {
               activities: data.activities,
               comments: data.comments,
               rated: data.rated,
+              title: data.title,
+              description: data.description,
+              itinerary: data.itinerary,
             };
           })
         );
@@ -101,7 +104,8 @@ const Saved = () => {
     rating,
     rated,
     title,
-    description
+    description,
+    itinerary
   ) => {
     router.push({
       pathname: "/post",
@@ -125,6 +129,7 @@ const Saved = () => {
         rated,
         title,
         description,
+        itinerary,
       },
     });
   };
@@ -174,7 +179,7 @@ const Saved = () => {
                 handleCardPress(
                   post.id,
                   post.picture,
-                  post.title,
+                  post.location,
                   post.username,
                   post.city,
                   post.bestTime,
@@ -188,7 +193,10 @@ const Saved = () => {
                   post.comments,
                   post.saved,
                   post.rating,
-                  post.description
+                  post.rated,
+                  post.title,
+                  post.description,
+                  post.itinerary
                 )
               }
             >

@@ -68,7 +68,8 @@ const Explore = () => {
     rating,
     rated,
     title,
-    description
+    description,
+    itinerary
   ) => {
     router.push({
       pathname: "/post",
@@ -92,6 +93,7 @@ const Explore = () => {
         rated,
         title,
         description,
+        itinerary,
       },
     });
   };
@@ -175,6 +177,8 @@ const Explore = () => {
               activities: p.activities,
               comments: p.comments,
               rated: p.rated,
+              description: p.description,
+              itinerary: p.itinerary,
             };
           })
         );
@@ -313,7 +317,7 @@ const Explore = () => {
                 handleCardPress(
                   post.id,
                   post.picture,
-                  post.title,
+                  post.location,
                   post.username,
                   post.city,
                   post.bestTime,
@@ -327,7 +331,10 @@ const Explore = () => {
                   post.comments,
                   post.saved,
                   post.rating,
-                  post.description
+                  post.rated,
+                  post.title,
+                  post.description,
+                  post.itinerary
                 )
               }
             >

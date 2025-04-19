@@ -52,7 +52,8 @@ const Spots = () => {
     rating,
     rated,
     title,
-    description
+    description,
+    itinerary
   ) => {
     router.push({
       pathname: "/post",
@@ -76,6 +77,7 @@ const Spots = () => {
         rated,
         title,
         description,
+        itinerary,
       },
     });
   };
@@ -205,7 +207,7 @@ const Spots = () => {
                 handleCardPress(
                   post.id,
                   post.picture,
-                  post.title,
+                  post.location,
                   post.username,
                   post.city,
                   post.bestTime,
@@ -219,7 +221,10 @@ const Spots = () => {
                   post.comments,
                   post.saved,
                   post.rating,
-                  post.description
+                  post.rated,
+                  post.title,
+                  post.description,
+                  post.itinerary
                 )
               }
             >

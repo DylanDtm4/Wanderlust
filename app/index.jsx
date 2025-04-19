@@ -17,6 +17,7 @@ import { getAuth } from "firebase/auth";
 import { app } from "../config/firebase";
 
 const Home = () => {
+  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
   const [posts, setPosts] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -55,7 +56,9 @@ const Home = () => {
     saved,
     rating,
     rated,
-    title
+    title,
+    description,
+    itinerary
   ) => {
     router.push({
       pathname: "/post",
@@ -78,6 +81,8 @@ const Home = () => {
         rating,
         rated,
         title,
+        description,
+        itinerary,
       },
     });
   };
@@ -147,13 +152,10 @@ const Home = () => {
           data.map((p) => {
             return {
               id: p._id,
-              username: p.username,
-              title: p.title,
-              location: p.location,
-              city: p.city,
-              rating: p.rating,
               picture: p.picture,
-              saved: p.saved,
+              location: p.location,
+              username: p.username,
+              city: p.city,
               bestTime: p.bestTime,
               upvotes: p.upvotes,
               upvoted: p.upvoted,
@@ -163,7 +165,12 @@ const Home = () => {
               upperBudget: p.upperBudget,
               activities: p.activities,
               comments: p.comments,
+              saved: p.saved,
+              rating: p.rating,
               rated: p.rated,
+              title: p.title,
+              description: p.description,
+              itinerary: p.itinerary,
             };
           })
         );
@@ -192,6 +199,13 @@ const Home = () => {
     fetchPosts();
     fetchSavedPosts();
   }, [posts, savedPosts]);
+
+  const filteredPosts = posts.filter(
+    (post) =>
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.city.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <ScrollView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -221,7 +235,12 @@ const Home = () => {
         {/* Search bar */}
         <View style={styles.searchBar}>
           <Icon name="search" size={20} color="#CFCAC0" />
-          <Text style={styles.searchText}>Find things to do</Text>
+          <TextInput
+            placeholder="Find things to do"
+            value={searchQuery}
+            onChangeText={(text) => setSearchQuery(text)}
+            style={styles.searchInput}
+          />
         </View>
       </View>
 
@@ -257,7 +276,7 @@ const Home = () => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalScroll}
           >
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <TouchableOpacity
                 key={post.id}
                 style={styles.exploreCard}
@@ -265,7 +284,7 @@ const Home = () => {
                   handleCardPress(
                     post.id,
                     post.picture,
-                    post.title,
+                    post.location,
                     post.username,
                     post.city,
                     post.bestTime,
@@ -278,7 +297,11 @@ const Home = () => {
                     post.activities,
                     post.comments,
                     post.saved,
-                    post.rating
+                    post.rating,
+                    post.rated,
+                    post.title,
+                    post.description,
+                    post.itinerary
                   )
                 }
               >
@@ -415,7 +438,8 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 20,
   },
-  searchText: {
+  searchInput: {
+    flex: 1,
     fontFamily: "Poppins",
     fontSize: 13,
     fontWeight: "600",

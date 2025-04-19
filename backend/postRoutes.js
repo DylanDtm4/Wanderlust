@@ -57,6 +57,7 @@ postRoutes.route("/create/post").post(async (request, response) => {
     upperBudget: request.body.upperBudget,
     createdAt: new Date(),
     updatedAt: new Date(),
+    itinerary: request.body.itinerary,
   };
   let data = await db.collection("posts").insertOne(mongoObject);
   response.json(data);
@@ -88,6 +89,7 @@ postRoutes.route("/posts/:postID").put(async (request, response) => {
       lowerBudget: request.body.lowerBudget,
       upperBudget: request.body.upperBudget,
       updatedAt: new Date(),
+      itinerary: request.body.itinerary,
     },
   };
   let data = await db
@@ -166,6 +168,7 @@ postRoutes.route("/get/click/posts/:postID").get(async (request, response) => {
         bestTime: 1,
         duration: 1,
         comments: 1,
+        itinerary: 1,
       },
     }
   );

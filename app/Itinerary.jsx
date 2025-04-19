@@ -32,11 +32,14 @@ const Itinerary = () => {
     duration,
     lowerBudget,
     upperBudget,
-    // activities,
-    // comments,
+    activities,
+    comments,
     saved,
     rating,
     rated,
+    title,
+    description,
+    itinerary,
   } = useLocalSearchParams();
   const router = useRouter();
 
@@ -45,38 +48,6 @@ const Itinerary = () => {
   if (!currentUser) throw new Error("User not logged in");
   const userId = currentUser.uid;
 
-  const activities = [
-    {
-      day: 1,
-      title: "Arrival & Orientation",
-      activities: [
-        { time: "9:00 AM", activity: "Check-in at Hotel", icon: "home" },
-        { time: "11:00 AM", activity: "Local Area Tour", icon: "map" },
-        { time: "2:00 PM", activity: "Welcome Lunch", icon: "coffee" },
-        { time: "4:00 PM", activity: "City Exploration", icon: "compass" },
-      ],
-    },
-    {
-      day: 2,
-      title: "Adventure Day",
-      activities: [
-        { time: "8:00 AM", activity: "Breakfast", icon: "coffee" },
-        { time: "10:00 AM", activity: "Hiking Trip", icon: "trending-up" },
-        { time: "2:00 PM", activity: "Local Cuisine", icon: "coffee" },
-        { time: "5:00 PM", activity: "Sunset Views", icon: "sun" },
-      ],
-    },
-    {
-      day: 3,
-      title: "Cultural Experience",
-      activities: [
-        { time: "9:00 AM", activity: "Museum Visit", icon: "book" },
-        { time: "12:00 PM", activity: "Local Market", icon: "shopping-bag" },
-        { time: "3:00 PM", activity: "Cooking Class", icon: "coffee" },
-        { time: "7:00 PM", activity: "Traditional Show", icon: "music" },
-      ],
-    },
-  ];
   const handleXPress = () => {
     router.replace({
       pathname: "/post",
@@ -94,13 +65,17 @@ const Itinerary = () => {
         lowerBudget,
         upperBudget,
         activities,
-        // comments,
+        comments,
         saved,
         rating,
         rated,
+        title,
+        description,
+        itinerary,
       },
     });
   };
+  console.log(itinerary);
   const handleSave = async (postID) => {
     try {
       const res = await fetch(
@@ -143,7 +118,7 @@ const Itinerary = () => {
             <TouchableOpacity onPress={handleXPress}>
               <Feather name="x" size={24} color="#FFFFFF" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Your {location} Adventure</Text>
+            <Text style={styles.headerTitle}>Your {title} Adventure</Text>
             <View style={{ width: 24 }} />
           </View>
 
@@ -151,7 +126,7 @@ const Itinerary = () => {
             style={styles.content}
             showsVerticalScrollIndicator={false}
           >
-            {activities.map((day, index) => (
+            {/* {activities.map((day, index) => (
               <View key={index} style={styles.dayContainer}>
                 <View style={styles.dayHeader}>
                   <Text style={styles.dayTitle}>Day {day.day}</Text>
@@ -171,7 +146,7 @@ const Itinerary = () => {
                   </View>
                 ))}
               </View>
-            ))}
+            ))} */}
             {/*SAVE*/}
             <TouchableOpacity onPress={() => handleSave(postID)}>
               <View style={styles.saveContainer}>
