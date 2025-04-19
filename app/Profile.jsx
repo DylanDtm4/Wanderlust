@@ -25,6 +25,8 @@ const Profile = () => {
   const [posts, setPosts] = useState([]);
   const [createdPosts, setCreatedPosts] = useState([]);
   const [imageLoaded, setImageLoaded] = useState({});
+  const [loadingProfileImage, setLoadingProfileImage] = useState(true);
+
   const router = useRouter();
 
   const auth = getAuth(app);
@@ -163,7 +165,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (allImagesLoaded) {
-      setLoading(false); // Set loading to false once all images have loaded
+      setLoading(false);
     }
   }, [allImagesLoaded]);
 
@@ -188,7 +190,20 @@ const Profile = () => {
             </View>
 
             <View style={styles.topContainer}>
-              <Image source={profile1} style={styles.profileImage} />
+              <View style={styles.profileImageWrapper}>
+                {loadingProfileImage && (
+                  <ActivityIndicator
+                    size="large"
+                    color="#386BF6"
+                    style={styles.loader}
+                  />
+                )}
+                <Image
+                  source={profile1}
+                  style={styles.profileImage}
+                  onLoad={() => setLoadingProfileImage(false)}
+                />
+              </View>{" "}
               <View style={styles.statsContainer}>
                 {[
                   { label: "Posts", value: createdPosts.length },
@@ -253,7 +268,7 @@ const Profile = () => {
                           JSON.stringify(post.itinerary)
                         )
                       }
-                      onLoad={() => handleImageLoad(post.id)} // Track image load
+                      onLoad={() => handleImageLoad(post.id)}
                     />
                   </View>
                 ))}
@@ -277,12 +292,32 @@ const Profile = () => {
   );
 };
 
-const Card = ({ image, location, onPress, onLoad }) => (
-  <TouchableOpacity style={styles.card} onPress={onPress}>
-    <Image source={image} style={styles.image} onLoad={onLoad} />
-    <Text style={styles.locationText}>{location}</Text>
-  </TouchableOpacity>
-);
+const Card = ({ image, location, onPress, onLoad }) => {
+  const [loadingImage, setLoadingImage] = useState(true);
+
+  const handleLoad = () => {
+    setLoadingImage(false);
+    onLoad?.();
+  };
+
+  return (
+    <TouchableOpacity style={styles.card} onPress={onPress}>
+      <View style={{ width: "100%", flex: 1 }}>
+        <Image source={image} style={styles.image} onLoad={handleLoad} />
+        {loadingImage && (
+          <ActivityIndicator
+            size="small"
+            color="#386BF6"
+            style={StyleSheet.absoluteFillObject}
+          />
+        )}
+      </View>
+      <View style={styles.locationContainer}>
+        <Text style={styles.locationText}>{location}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 export default Profile;
 
@@ -392,7 +427,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: cardSize,
-    height: 150,
+    height: 120,
     backgroundColor: "#fff",
     borderRadius: 12,
     shadowColor: "#000",
@@ -405,7 +440,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: "70%",
+    height: "100%",
     resizeMode: "cover",
   },
   locationText: {
@@ -435,5 +470,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#1E1E1E",
     zIndex: 1,
+  },
+  profileImageWrapper: {
+    position: "relative",
+    width: 100, // Ensure width is consistent with the image size
+    height: 100, // Ensure height is consistent with the image size
+    borderRadius: 50, // For circular shape
+    overflow: "hidden", // Make sure no overflow happens
+  },
+  loader: {
+    position: "absolute",
+    top: "50%", // Center vertically
+    left: "50%", // Center horizontally
+    transform: [{ translateX: -17.5 }, { translateY: -17.5 }], // Adjust for the loader size
   },
 });

@@ -47,6 +47,7 @@ const Post = () => {
   const [hasUpvoted, setHasUpvoted] = useState(upvoted === "true");
   const [hasDownvoted, setHasDownvoted] = useState(downvoted === "true");
   const [votes, setVotes] = useState(Number(upvotes));
+  const [voteBgColor, setVoteBgColor] = useState();
   const [imageLoading, setImageLoading] = useState(true);
   const [image, setImage] = useState();
   const [expanded, setExpanded] = useState(false); // Whether the stars are expanded or not
@@ -55,7 +56,7 @@ const Post = () => {
   if (!currentUser) throw new Error("User not logged in");
   const userId = currentUser.uid;
   const [ratingValue, setRatingValue] = useState(rating || 0); // Initialize with the current rating if available
-
+  const [displayRating, setDisplayRating] = useState(rating);
   const renderStars = () => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -94,7 +95,6 @@ const Post = () => {
 
       if (data.success) {
         // On successful rating update, update the rating state
-        setRatingValue(newRating);
         alert("Rating updated successfully!");
       } else {
         alert("Failed to update rating.");
@@ -187,18 +187,38 @@ const Post = () => {
     setIsSaved(savedPosts.includes(postID));
   });
 
+  useEffect(() => {
+    const fetchRating = async () => {
+      try {
+        const res = await fetch(
+          `https://wanderlustbackend-s12f.onrender.com/posts/${postID}`
+        );
+
+        const data = await res.json();
+        setDisplayRating(data.rating);
+      } catch (err) {
+        console.error("Fetch error:", err);
+      }
+    };
+    fetchRating();
+  });
+
   const handleUpVote = async () => {
-    let newVotes = 0;
-    if (hasUpvoted) {
-      newVotes = votes - 1;
-      setVotes(newVotes);
-      setHasUpvoted(false);
-    } else {
-      newVotes = votes + (hasDownvoted ? 2 : 1);
-      setVotes(newVotes);
-      setHasUpvoted(true);
-    }
-    setHasDownvoted(false);
+    setVotes((prevVotes) => {
+      let newVotes = 0;
+      if (hasUpvoted) {
+        newVotes = prevVotes - 1;
+        setHasUpvoted(false);
+        setVoteBgColor("rgba(0, 0, 0, 0.5)"); // Original color
+      } else {
+        newVotes = prevVotes + (hasDownvoted ? 2 : 1);
+        setHasUpvoted(true);
+        setVoteBgColor("#4CAF50"); // Green
+      }
+      setHasDownvoted(false);
+      return newVotes;
+    });
+
     try {
       await fetch(
         `https://wanderlustbackend-s12f.onrender.com/posts/upvote/${postID}`,
@@ -208,8 +228,9 @@ const Post = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            upvotes: newVotes,
+            upvotes: votes,
             upvoted: hasUpvoted,
+            downvoted: hasDownvoted,
           }),
         }
       );
@@ -219,14 +240,21 @@ const Post = () => {
   };
 
   const handleDownVote = async () => {
-    if (hasDownvoted) {
-      setVotes((prev) => prev + 1);
-      setHasDownvoted(false);
-    } else {
-      setVotes((prev) => prev - (hasUpvoted ? 2 : 1));
-      setHasDownvoted(true);
-    }
-    setHasUpvoted(false);
+    setVotes((prevVotes) => {
+      let newVotes = prevVotes;
+      if (hasDownvoted) {
+        newVotes = prevVotes + 1;
+        setHasDownvoted(false);
+        setVoteBgColor("rgba(0, 0, 0, 0.5)"); // Original color
+      } else {
+        newVotes = prevVotes - (hasUpvoted ? 2 : 1);
+        setHasDownvoted(true);
+        setVoteBgColor("#F44336"); // Red
+      }
+      setHasUpvoted(false);
+      return newVotes;
+    });
+
     try {
       await fetch(
         `https://wanderlustbackend-s12f.onrender.com/posts/downvote/${postID}`,
@@ -237,6 +265,7 @@ const Post = () => {
           },
           body: JSON.stringify({
             upvotes: votes,
+            upvoted: hasUpvoted,
             downvoted: hasDownvoted,
           }),
         }
@@ -266,7 +295,7 @@ const Post = () => {
         activities,
         comments,
         saved,
-        rating,
+        displayRating,
         rated,
         title,
         description,
@@ -314,7 +343,7 @@ const Post = () => {
                     {renderStars()}
                   </View>
                 )}
-                <Text style={styles.rating}>{rating}</Text>
+                <Text style={styles.rating}>{displayRating}</Text>
               </View>
             </View>
 
@@ -351,7 +380,9 @@ const Post = () => {
             </View>
 
             {/* Voting Buttons */}
-            <View style={styles.votingSection}>
+            <View
+              style={[styles.votingSection, { backgroundColor: voteBgColor }]}
+            >
               <TouchableOpacity style={styles.voteButton}>
                 <Feather
                   name="arrow-up"
