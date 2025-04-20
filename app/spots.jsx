@@ -14,11 +14,13 @@ import { useEffect, useState } from "react";
 import { getAuth } from "firebase/auth";
 import { app } from "../config/firebase";
 import { useRouter } from "expo-router";
+import { ActivityIndicator } from "react-native";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 40;
 
 const Spots = () => {
+	const [loadingImages, setLoadingImages] = useState({});
 	const [posts, setPosts] = useState([]);
 	const [savedPosts, setSavedPosts] = useState([]);
 	const router = useRouter();
@@ -144,13 +146,10 @@ const Spots = () => {
 					data.map((p) => {
 						return {
 							id: p._id,
-							username: p.username,
-							title: p.title,
-							location: p.location,
-							city: p.city,
-							rating: p.rating,
 							picture: p.picture,
-							saved: p.saved,
+							location: p.location,
+							username: p.username,
+							city: p.city,
 							bestTime: p.bestTime,
 							upvotes: p.upvotes,
 							upvoted: p.upvoted,
@@ -160,7 +159,12 @@ const Spots = () => {
 							upperBudget: p.upperBudget,
 							activities: p.activities,
 							comments: p.comments,
+							saved: p.saved,
+							rating: p.rating,
 							rated: p.rated,
+							title: p.title,
+							description: p.description,
+							itinerary: p.itinerary,
 						};
 					})
 				);
@@ -228,11 +232,26 @@ const Spots = () => {
 								)
 							}
 						>
-							<Image
-								source={{ uri: post.picture }}
-								style={styles.spotImage}
-								resizeMode="cover"
-							/>
+							<View style={styles.imageWrapper}>
+								{loadingImages[post.id] && (
+									<View style={styles.loaderContainer}>
+										<ActivityIndicator size="large" color="#386BF6" />
+									</View>
+								)}
+
+								<Image
+									key={post.picture} // helps React know it's a fresh image
+									source={{ uri: post.picture }}
+									style={styles.spotImage}
+									resizeMode="cover"
+									onLoadStart={() =>
+										setLoadingImages((prev) => ({ ...prev, [post.id]: true }))
+									}
+									onLoadEnd={() =>
+										setLoadingImages((prev) => ({ ...prev, [post.id]: false }))
+									}
+								/>
+							</View>
 
 							<View style={styles.spotContent}>
 								<View style={styles.textContainer}>
@@ -347,6 +366,22 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.1,
 		shadowRadius: 4,
 		elevation: 2,
+	},
+	imageWrapper: {
+		width: "100%",
+		height: 220,
+		justifyContent: "center",
+		alignItems: "center",
+		backgroundColor: "#e0e0e0",
+	},
+
+	loaderContainer: {
+		position: "absolute",
+		zIndex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		width: "100%",
+		height: "100%",
 	},
 });
 

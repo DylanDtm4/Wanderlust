@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
 	View,
 	Text,
@@ -15,10 +15,14 @@ import Home from "./index";
 import Logo from "../assets/images/Logo2.png";
 import { getAuth } from "firebase/auth";
 import { app } from "../config/firebase";
+import { ActivityIndicator } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
 const Itinerary = () => {
+	const [imageLoading, setImageLoading] = useState(true);
+	const [image, setImage] = useState();
+
 	const {
 		postID,
 		picture,
@@ -103,16 +107,28 @@ const Itinerary = () => {
 		}
 	};
 
+	useEffect(() => {
+		setImage(picture);
+		setImageLoading(false);
+	}, [picture]);
+
 	return (
 		<>
 			<Stack.Screen options={{ headerShown: false }} />
 			{/* Logo at the top right */}
 			<Image source={Logo} style={styles.logo} resizeMode="contain" />
 			<View style={styles.container}>
+				{imageLoading && (
+					<View style={styles.loadingContainer}>
+						<ActivityIndicator size="large" color="#386BF6" />
+					</View>
+				)}
 				<ImageBackground
-					source={{ uri: picture }}
+					source={{ uri: image }}
 					style={styles.backgroundImage}
 					resizeMode="cover"
+					onLoadStart={() => setImageLoading(true)}
+					onLoadEnd={() => setImageLoading(false)}
 				>
 					<View style={styles.overlay} />
 					<View style={styles.header}>
@@ -308,6 +324,15 @@ const styles = StyleSheet.create({
 		borderRadius: 12,
 		justifyContent: "center",
 		alignItems: "center",
+	},
+	loadingContainer: {
+		position: "absolute",
+		width: "100%",
+		height: "100%",
+		justifyContent: "center",
+		alignItems: "center",
+		backgroundColor: "#1E1E1E",
+		zIndex: 1,
 	},
 });
 

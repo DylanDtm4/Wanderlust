@@ -14,16 +14,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { getAuth } from "firebase/auth";
 import { app } from "../config/firebase";
+import { ActivityIndicator } from "react-native";
 
 const { width } = Dimensions.get("window");
 const SPOT_CARD_WIDTH = width * 0.65;
 
 const Explore = () => {
-	const [activeTab, setActiveTab] = useState("Location");
+	const [activeTab, setActiveTab] = useState("Locations");
 	const [isMapFullScreen, setIsMapFullScreen] = useState(false);
 	const [posts, setPosts] = useState([]);
 	const [savedPosts, setSavedPosts] = useState([]);
 	const [user, setUser] = useState();
+	const [loadingImages, setLoadingImages] = useState({});
 
 	const auth = getAuth(app);
 	const currentUser = auth.currentUser;
@@ -40,10 +42,10 @@ const Explore = () => {
 		router.push("/spots");
 	};
 	const categories = [
-		{ id: "Location", icon: "location" },
+		{ id: "Locations", icon: "location" },
 		{ id: "Hotels", icon: "bed" },
-		{ id: "Food", icon: "restaurant" },
-		{ id: "Adventure", icon: "bicycle" },
+		{ id: "Food Spots", icon: "restaurant" },
+		{ id: "Adventures", icon: "bicycle" },
 	];
 
 	const handleTabClick = (category) => {
@@ -210,7 +212,7 @@ const Explore = () => {
 		fetchSavedPosts();
 	});
 
-	const filteredPosts = posts.filter((post) => post.username !== user);
+	// const filteredPosts = posts.filter((post) => post.username !== user);
 	return (
 		<>
 			<Stack.Screen options={{ headerShown: false }} />
@@ -312,7 +314,7 @@ const Explore = () => {
 					showsHorizontalScrollIndicator={false}
 					contentContainerStyle={styles.spotsContainer}
 				>
-					{filteredPosts.map((post) => (
+					{posts.map((post) => (
 						<TouchableOpacity
 							key={post.id}
 							style={styles.spotCard}
@@ -338,15 +340,29 @@ const Explore = () => {
 									post.rated,
 									post.title,
 									post.description,
-									post.itinerary
+									JSON.stringify(post.itinerary)
 								)
 							}
 						>
-							<Image
-								source={{ uri: post.picture }}
-								style={styles.spotImage}
-								resizeMode="cover"
-							/>
+							<View style={{ position: "relative" }}>
+								{loadingImages[post.id] && (
+									<View style={styles.imageLoader}>
+										<ActivityIndicator size="large" color="#386BF6" />
+									</View>
+								)}
+								<Image
+									source={{ uri: post.picture }}
+									style={styles.spotImage}
+									resizeMode="cover"
+									onLoadStart={() =>
+										setLoadingImages((prev) => ({ ...prev, [post.id]: true }))
+									}
+									onLoadEnd={() =>
+										setLoadingImages((prev) => ({ ...prev, [post.id]: false }))
+									}
+								/>
+							</View>
+
 							<View style={styles.spotOverlay} />
 
 							<View style={styles.spotContent}>
@@ -622,6 +638,18 @@ const styles = StyleSheet.create({
 		backgroundColor: "rgba(255,255,255,0.2)",
 		borderRadius: 20,
 		padding: 5,
+	},
+	imageLoader: {
+		position: "absolute",
+		top: 0,
+		left: 0,
+		right: 0,
+		bottom: 0,
+		justifyContent: "center",
+		alignItems: "center",
+		backgroundColor: "rgba(255, 255, 255, 0.6)",
+		zIndex: 1,
+		borderRadius: 20,
 	},
 });
 
