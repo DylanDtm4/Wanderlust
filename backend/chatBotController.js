@@ -1,5 +1,5 @@
 const getGeminiReply = require("./geminiService");
-const db = require("../connect"); // ✅ this uses getDb()
+const db = require("./connect"); // ✅ this uses getDb()
 
 const getReply = async (req, res) => {
   const { userId, message } = req.body;

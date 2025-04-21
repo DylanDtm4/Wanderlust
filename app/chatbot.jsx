@@ -21,7 +21,7 @@ const ChatbotPage = () => {
     setMessage(""); // Clear input
 
     try {
-      // Send to backend/chatbot for a reply
+      // Change localhost to your Ip address
       const res = await fetch("http://localhost:8080/chatbot/reply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -39,7 +39,7 @@ const ChatbotPage = () => {
       // Add bot message to UI
       setMessages((prev) => [...prev, botMessage]);
 
-      // Save both messages to DB
+     // Change localhost to your Ip address
       await fetch("http://localhost:8080/chatbot/message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
