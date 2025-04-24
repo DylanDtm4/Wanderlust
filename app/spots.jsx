@@ -168,7 +168,10 @@ const Spots = () => {
             };
           })
         );
-        setPosts(displayPosts);
+        const sortedPosts = displayPosts.sort(
+          (a, b) => parseFloat(b.rating) - parseFloat(a.rating)
+        );
+        setPosts(sortedPosts);
       } catch (err) {
         console.error("Fetch error:", err);
       }

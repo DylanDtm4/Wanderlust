@@ -1,7 +1,17 @@
-import React, {useState, useRef} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
-import { Feather, FontAwesome5 } from '@expo/vector-icons';
-import { Stack, useRouter} from 'expo-router';
+import React, { useState, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { Feather, FontAwesome5 } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
 
 const ChatbotPage = () => {
   const [message, setMessage] = useState("");
@@ -22,11 +32,17 @@ const ChatbotPage = () => {
 
     try {
       // Change localhost to your Ip address
-      const res = await fetch("http://localhost:8080/chatbot/reply", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: "user123", message: userMessage.text }),
-      });
+      const res = await fetch(
+        "https://wanderlustbackend-s12f.onrender.com/chatbot/reply",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: "user123",
+            message: userMessage.text,
+          }),
+        }
+      );
 
       const data = await res.json();
 
@@ -39,16 +55,19 @@ const ChatbotPage = () => {
       // Add bot message to UI
       setMessages((prev) => [...prev, botMessage]);
 
-     // Change localhost to your Ip address
-      await fetch("http://localhost:8080/chatbot/message", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: "user123", // replace with actual user ID
-          userMessage: userMessage.text,
-          botMessage: botMessage.text,
-        }),
-      });
+      // Change localhost to your Ip address
+      await fetch(
+        "https://wanderlustbackend-s12f.onrender.com/chatbot/message",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: "user123", // replace with actual user ID
+            userMessage: userMessage.text,
+            botMessage: botMessage.text,
+          }),
+        }
+      );
     } catch (err) {
       console.error("Error sending message:", err);
     }
