@@ -12,8 +12,10 @@ import { Ionicons } from "@expo/vector-icons";
 import Logo from "../assets/images/Logo2.png";
 import { getAuth } from "firebase/auth";
 import { app } from "../config/firebase";
+import { ActivityIndicator } from "react-native";
 
 const Saved = () => {
+	const [loadingImages, setLoadingImages] = useState({});
 	const [activeTab, setActiveTab] = useState("Location"); // State to track active tab
 	const router = useRouter(); // Router for navigation
 	const auth = getAuth(app);
@@ -200,7 +202,23 @@ const Saved = () => {
 								)
 							}
 						>
-							<Image source={{ uri: post.picture }} style={styles.itemImage} />
+							<View style={{ position: "relative", width: 51, height: 56 }}>
+								{loadingImages[post.id] && (
+									<View style={styles.imageLoader}>
+										<ActivityIndicator size="small" color="#386BF6" />
+									</View>
+								)}
+								<Image
+									source={{ uri: post.picture }}
+									style={styles.itemImage}
+									onLoadStart={() =>
+										setLoadingImages((prev) => ({ ...prev, [post.id]: true }))
+									}
+									onLoadEnd={() =>
+										setLoadingImages((prev) => ({ ...prev, [post.id]: false }))
+									}
+								/>
+							</View>
 							<View style={styles.itemInfo}>
 								<Text style={styles.itemTitle}>{post.title}</Text>
 								<Text style={styles.itemDate}>{post.bestTime}</Text>
@@ -310,5 +328,17 @@ const styles = StyleSheet.create({
 		fontSize: 8,
 		color: "rgba(66, 88, 132, 0.5)",
 		marginTop: 2,
+	},
+	imageLoader: {
+		position: "absolute",
+		top: 0,
+		left: 0,
+		right: 0,
+		bottom: 0,
+		alignItems: "center",
+		justifyContent: "center",
+		backgroundColor: "rgba(255,255,255,0.6)",
+		borderRadius: 7,
+		zIndex: 1,
 	},
 });

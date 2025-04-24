@@ -8,6 +8,7 @@ import {
   Dimensions,
   Animated,
   Easing,
+  ActivityIndicator,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
@@ -20,176 +21,61 @@ const { width, height } = Dimensions.get("window");
 
 const SurprisePage = () => {
   const [posts, setPosts] = useState([]);
-  const [savedPosts, setSavedPosts] = useState([]);
-  const [nonSavedPosts, setNonSavedPosts] = useState([]);
-
-  const auth = getAuth(app);
-  const currentUser = auth.currentUser;
-
-  if (!currentUser) {
-    console.log("No user is signed in.");
-    return;
-  }
-
-  const userId = currentUser.uid;
-  const router = useRouter();
-  const [currentLocation, setCurrentLocation] = useState(null);
+  const [savedPostIds, setSavedPostIds] = useState([]);
+  const [currentPost, setCurrentPost] = useState(null);
+  const [loadingImage, setLoadingImage] = useState(true);
   const [sparkleAnim] = useState(new Animated.Value(0));
 
-  const handleCardPress = (
-    postID,
-    picture,
-    location,
-    username,
-    city,
-    bestTime,
-    upvotes,
-    upvoted,
-    downvoted,
-    duration,
-    lowerBudget,
-    upperBudget,
-    activities,
-    comments,
-    saved,
-    rating,
-    rated,
-    title,
-    description,
-    itinerary
-  ) => {
-    router.push({
-      pathname: "/post",
-      params: {
-        postID,
-        picture,
-        location,
-        username,
-        city,
-        bestTime,
-        upvotes,
-        upvoted,
-        downvoted,
-        duration,
-        lowerBudget,
-        upperBudget,
-        activities,
-        comments,
-        saved,
-        rating,
-        rated,
-        title,
-        description,
-        itinerary,
-      },
-    });
-  };
-
-  const handleSave = async (postID) => {
-    try {
-      const res = await fetch(
-        `https://wanderlustbackend-s12f.onrender.com/users/${userId}/save-post`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ postID }),
-        }
-      );
-
-      const data = await res.json();
-      console.log("Save response:", data);
-
-      if (data.success) {
-        alert("Post saved!");
-      } else {
-        throw new Error("Save failed");
-      }
-    } catch (err) {
-      console.error("Save error:", err);
-      alert("Could not save post");
-    }
-  };
-
-  const handleUnsave = async (postID) => {
-    try {
-      const res = await fetch(
-        `https://wanderlustbackend-s12f.onrender.com/users/${userId}/remove-saved-post`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ postID }),
-        }
-      );
-
-      const data = await res.json();
-      console.log("Unsave response:", data);
-
-      if (data.success) {
-        alert("Post removed from saved posts.");
-      } else {
-        throw new Error("Unsave failed");
-      }
-    } catch (err) {
-      console.error("Unsave error:", err);
-      alert("Could not remove post from saved list");
-    }
-  };
+  const auth = getAuth(app);
+  const user = auth.currentUser;
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchPostsAndSaved = async () => {
+    if (!user) return;
+
+    const fetchData = async () => {
       try {
-        const [postsRes, savedRes] = await Promise.all([
+        const [postsRes, userRes] = await Promise.all([
           fetch("https://wanderlustbackend-s12f.onrender.com/posts"),
-          fetch(`https://wanderlustbackend-s12f.onrender.com/users/${userId}`),
+          fetch(
+            `https://wanderlustbackend-s12f.onrender.com/users/${user.uid}`
+          ),
         ]);
+
         const postsData = await postsRes.json();
-        const savedData = await savedRes.json();
+        const userData = await userRes.json();
 
-        const formattedPosts = postsData.map((p) => ({
-          id: p._id,
-          username: p.username,
-          title: p.title,
-          location: p.location,
-          city: p.city,
-          rating: p.rating,
-          picture: p.picture,
-          saved: p.saved,
-          bestTime: p.bestTime,
-          upvotes: p.upvotes,
-          upvoted: p.upvoted,
-          downvoted: p.downvoted,
-          duration: p.duration,
-          lowerBudget: p.lowerBudget,
-          upperBudget: p.upperBudget,
-          activities: p.activities,
-          comments: p.comments,
-          rated: p.rated,
-          description: p.description,
-          itinerary: p.itinerary,
-        }));
-
-        setPosts(formattedPosts);
-        setSavedPosts(savedData.savedPosts || []);
+        setPosts(postsData);
+        setSavedPostIds(userData.savedPosts || []);
       } catch (err) {
-        console.error("Fetch error:", err);
+        console.error("Failed to fetch posts or user:", err);
       }
     };
-    startSparkleAnimation();
 
-    fetchPostsAndSaved();
-  }, []);
+    fetchData();
+    startSparkleAnimation();
+  }, [user]);
 
   useEffect(() => {
-    const updatedNonSaved = posts.filter((p) => !savedPosts.includes(p.id));
-    setNonSavedPosts(updatedNonSaved);
-
-    if (updatedNonSaved.length > 0) {
-      const randomIndex = Math.floor(Math.random() * updatedNonSaved.length);
-      setCurrentLocation(updatedNonSaved[randomIndex]);
+    const nonSaved = posts.filter((p) => !savedPostIds.includes(p._id));
+    if (nonSaved.length > 0) {
+      const random = nonSaved[Math.floor(Math.random() * nonSaved.length)];
+      setCurrentPost(random);
+      setLoadingImage(true);
     } else {
-      setCurrentLocation(null);
+      setCurrentPost(null);
     }
-  }, [posts, savedPosts]);
+  }, [posts, savedPostIds]);
+
+  const getRandomPost = () => {
+    setCurrentPost(null);
+    const nonSaved = posts.filter((p) => !savedPostIds.includes(p._id));
+    if (nonSaved.length === 0) return;
+
+    const random = nonSaved[Math.floor(Math.random() * nonSaved.length)];
+    setCurrentPost(random);
+    setLoadingImage(true);
+  };
 
   const startSparkleAnimation = () => {
     Animated.loop(
@@ -210,68 +96,63 @@ const SurprisePage = () => {
     ).start();
   };
 
-  const getRandomLocation = () => {
-    if (nonSavedPosts.length === 0) {
-      setCurrentLocation(null);
-      return;
-    }
-    const randomIndex = Math.floor(Math.random() * nonSavedPosts.length);
-    setCurrentLocation(nonSavedPosts[randomIndex]);
-  };
-
-  const handleCancel = () => {
-    router.push("/");
-  };
-
   const sparkleOpacity = sparkleAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [0.3, 1],
   });
 
-  if (!currentLocation) {
-    return null; // or a loading spinner
+  const handlePostPress = () => {
+    if (!currentPost) return;
+
+    router.push({
+      pathname: "/post",
+      params: {
+        ...currentPost,
+        postID: currentPost._id,
+      },
+    });
+  };
+
+  if (!currentPost) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#386BF6" />
+        <Text style={{ marginTop: 10, fontFamily: "Poppins" }}>
+          Loading Surprise...
+        </Text>
+      </View>
+    );
   }
 
   return (
-    <LinearGradient
-      colors={["#E6F0FF", "#FFFFFF"]}
-      style={styles.container}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-    >
+    <LinearGradient colors={["#E6F0FF", "#FFFFFF"]} style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Top Bar */}
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={handleCancel}>
+        <TouchableOpacity onPress={() => router.push("/")}>
           <Text style={styles.cancelButton}>Back</Text>
         </TouchableOpacity>
         <Text style={styles.pageTitle}>Surprise Me</Text>
-        <TouchableOpacity onPress={getRandomLocation}>
+        <TouchableOpacity onPress={getRandomPost}>
           <Text style={styles.doneButton}>Try Again</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Decorative Elements */}
+      {/* Decorative Sparkles */}
       <View style={styles.decorativeContainer}>
-        {/* Sparkles */}
-        <Animated.View
-          style={[styles.sparkle, styles.sparkle1, { opacity: sparkleOpacity }]}
-        />
-        <Animated.View
-          style={[styles.sparkle, styles.sparkle2, { opacity: sparkleOpacity }]}
-        />
-        <Animated.View
-          style={[styles.sparkle, styles.sparkle3, { opacity: sparkleOpacity }]}
-        />
-        <Animated.View
-          style={[styles.sparkle, styles.sparkle4, { opacity: sparkleOpacity }]}
-        />
-        <Animated.View
-          style={[styles.sparkle, styles.sparkle5, { opacity: sparkleOpacity }]}
-        />
-
-        {/* Stars */}
+        {[
+          styles.sparkle1,
+          styles.sparkle2,
+          styles.sparkle3,
+          styles.sparkle4,
+          styles.sparkle5,
+        ].map((style, i) => (
+          <Animated.View
+            key={i}
+            style={[styles.sparkle, style, { opacity: sparkleOpacity }]}
+          />
+        ))}
         <Feather name="star" size={60} color="#A9C0FF" style={styles.star1} />
         <Feather name="star" size={60} color="#A9C0FF" style={styles.star2} />
       </View>
@@ -283,60 +164,41 @@ const SurprisePage = () => {
           We've picked something special just for you
         </Text>
 
-        {/* Location Card */}
+        {/* Post Card */}
         <TouchableOpacity
           style={styles.cardContainer}
-          onPress={() =>
-            handleCardPress(
-              currentLocation.id,
-              currentLocation.picture,
-              currentLocation.location,
-              currentLocation.username,
-              currentLocation.city,
-              currentLocation.bestTime,
-              currentLocation.upvotes,
-              currentLocation.upvoted,
-              currentLocation.downvoted,
-              currentLocation.duration,
-              currentLocation.lowerBudget,
-              currentLocation.upperBudget,
-              currentLocation.activities,
-              currentLocation.comments,
-              currentLocation.saved,
-              currentLocation.rating,
-              currentLocation.rated,
-              currentLocation.title,
-              currentLocation.description,
-              currentLocation.itinerary
-            )
-          }
+          onPress={handlePostPress}
           activeOpacity={0.8}
         >
+          {loadingImage && (
+            <ActivityIndicator
+              size="large"
+              color="#386BF6"
+              style={styles.loading}
+            />
+          )}
           <Image
-            source={{ uri: currentLocation.picture }}
+            key={currentPost._id} // 🔑 Forces re-render when post changes
+            source={{ uri: currentPost.picture }}
             style={styles.cardImage}
+            onLoad={() => setLoadingImage(false)}
           />
           <BlurView intensity={80} style={styles.cardOverlay}>
-            <Text style={styles.locationTitle}>{currentLocation.title}</Text>
+            <Text style={styles.locationTitle}>{currentPost.title}</Text>
             <View style={styles.locationInfo}>
               <Feather name="map-pin" size={20} color="#CAC8C8" />
-              <Text style={styles.locationText}>
-                {currentLocation.location}
-              </Text>
-              <Text style={styles.rating}>{currentLocation.rating} ★</Text>
+              <Text style={styles.locationText}>{currentPost.location}</Text>
+              <Text style={styles.rating}>{currentPost.rating} ★</Text>
             </View>
             <Text style={styles.locationDescription}>
-              {currentLocation.description}
+              {currentPost.description}
             </Text>
           </BlurView>
         </TouchableOpacity>
 
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.nextButton}
-            onPress={getRandomLocation}
-          >
+          <TouchableOpacity style={styles.nextButton} onPress={getRandomPost}>
             <Feather name="refresh-cw" size={20} color="#386BF6" />
             <Text style={styles.nextButtonText}>Try Another</Text>
           </TouchableOpacity>
@@ -347,11 +209,7 @@ const SurprisePage = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
-  },
+  container: { flex: 1 },
   topBar: {
     height: 56,
     flexDirection: "row",
@@ -387,33 +245,15 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 25,
     height: 16,
-    backgroundColor: "#386BF6",
     borderRadius: 5,
+    backgroundColor: "#386BF6",
     transform: [{ rotate: "45deg" }],
   },
-  sparkle1: {
-    top: "20%",
-    left: "10%",
-  },
-  sparkle2: {
-    bottom: "25%",
-    right: "15%",
-  },
-  sparkle3: {
-    top: "30%",
-    right: "20%",
-    backgroundColor: "#A9C0FF",
-  },
-  sparkle4: {
-    bottom: "40%",
-    left: "20%",
-    backgroundColor: "#A9C0FF",
-  },
-  sparkle5: {
-    top: "50%",
-    right: "30%",
-    backgroundColor: "#386BF6",
-  },
+  sparkle1: { top: "20%", left: "10%" },
+  sparkle2: { bottom: "25%", right: "15%" },
+  sparkle3: { top: "30%", right: "20%", backgroundColor: "#A9C0FF" },
+  sparkle4: { bottom: "40%", left: "20%", backgroundColor: "#A9C0FF" },
+  sparkle5: { top: "50%", right: "30%", backgroundColor: "#386BF6" },
   star1: {
     position: "absolute",
     top: "15%",
@@ -502,36 +342,16 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     width: width * 0.85,
     marginTop: 30,
   },
-  likeButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#386BF6",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 5,
-  },
   nextButton: {
-    flex: 1,
     height: 60,
     borderRadius: 30,
     backgroundColor: "#FFFFFF",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
     elevation: 5,
     marginBottom: 50,
   },
@@ -541,6 +361,18 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#386BF6",
     marginLeft: 10,
+  },
+  loading: {
+    position: "absolute",
+    top: "50%",
+    alignSelf: "center",
+    zIndex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#E6F0FF",
   },
 });
 

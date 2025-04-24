@@ -164,7 +164,7 @@ const CreateItinerary = () => {
           ),
         }}
       />
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 110 }}>
         <Text style={styles.header}>Create New Itinerary</Text>
 
         <View style={styles.inputGroup}>

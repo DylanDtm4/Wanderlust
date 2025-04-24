@@ -155,7 +155,7 @@ const Profile = () => {
     };
 
     fetchPosts();
-  }, [user]);
+  });
 
   const handleImageLoad = (id) => {
     setImageLoaded((prevState) => ({ ...prevState, [id]: true }));
@@ -203,7 +203,7 @@ const Profile = () => {
                   style={styles.profileImage}
                   onLoad={() => setLoadingProfileImage(false)}
                 />
-              </View>{" "}
+              </View>
               <View style={styles.statsContainer}>
                 {[
                   { label: "Posts", value: createdPosts.length },
@@ -455,7 +455,8 @@ const styles = StyleSheet.create({
   gridRowWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    justifyContent: "flex-start", // ✅ Align items to the start
+    gap: 10, // optional if you want even spacing between cards
   },
 
   cardWrapper: {
