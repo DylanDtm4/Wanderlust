@@ -101,14 +101,51 @@ const SurprisePage = () => {
     outputRange: [0.3, 1],
   });
 
-  const handlePostPress = () => {
-    if (!currentPost) return;
-
+  const handleCardPress = (
+    postID,
+    picture,
+    location,
+    username,
+    city,
+    bestTime,
+    upvotes,
+    upvoted,
+    downvoted,
+    duration,
+    lowerBudget,
+    upperBudget,
+    activities,
+    comments,
+    saved,
+    rating,
+    rated,
+    title,
+    description,
+    itinerary
+  ) => {
     router.push({
       pathname: "/post",
       params: {
-        ...currentPost,
-        postID: currentPost._id,
+        postID,
+        picture,
+        location,
+        username,
+        city,
+        bestTime,
+        upvotes,
+        upvoted,
+        downvoted,
+        duration,
+        lowerBudget,
+        upperBudget,
+        activities,
+        comments,
+        saved,
+        rating,
+        rated,
+        title,
+        description,
+        itinerary,
       },
     });
   };
@@ -167,7 +204,30 @@ const SurprisePage = () => {
         {/* Post Card */}
         <TouchableOpacity
           style={styles.cardContainer}
-          onPress={handlePostPress}
+          onPress={() =>
+            handleCardPress(
+              currentPost._id,
+              currentPost.picture,
+              currentPost.location,
+              currentPost.username,
+              currentPost.city,
+              currentPost.bestTime,
+              currentPost.upvotes,
+              currentPost.upvoted,
+              currentPost.downvoted,
+              currentPost.duration,
+              currentPost.lowerBudget,
+              currentPost.upperBudget,
+              currentPost.activities,
+              currentPost.comments,
+              currentPost.saved,
+              currentPost.rating,
+              currentPost.rated,
+              currentPost.title,
+              currentPost.description,
+              JSON.stringify(currentPost.itinerary)
+            )
+          }
           activeOpacity={0.8}
         >
           {loadingImage && (
