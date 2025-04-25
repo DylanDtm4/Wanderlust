@@ -185,14 +185,12 @@ const styles = StyleSheet.create({
   chatWrapper: {
     flex: 1,
     position: "relative",
+    paddingBottom: 150,
   },
   chatContainer: {
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 16,
-  },
-  messageContainer: {
-    marginBottom: 24,
   },
   botInfo: {
     flexDirection: "row",

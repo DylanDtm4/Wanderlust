@@ -16,6 +16,8 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { getAuth } from "firebase/auth";
 import { app } from "../config/firebase";
 import { ActivityIndicator } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -204,6 +206,12 @@ const Home = () => {
     fetchPosts();
     fetchSavedPosts();
   }, [posts, savedPosts]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setSearchQuery(""); // Reset search bar when Home screen is focused
+    }, [])
+  );
 
   const filteredPosts = posts.filter(
     (post) =>
