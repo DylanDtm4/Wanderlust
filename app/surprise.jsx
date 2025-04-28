@@ -16,6 +16,7 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { getAuth } from "firebase/auth";
 import { app } from "../config/firebase";
+import ConfettiCannon from "react-native-confetti-cannon";
 
 const { width, height } = Dimensions.get("window");
 
@@ -25,6 +26,7 @@ const SurprisePage = () => {
   const [currentPost, setCurrentPost] = useState(null);
   const [loadingImage, setLoadingImage] = useState(true);
   const [sparkleAnim] = useState(new Animated.Value(0));
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const auth = getAuth(app);
   const user = auth.currentUser;
@@ -62,6 +64,7 @@ const SurprisePage = () => {
       const random = nonSaved[Math.floor(Math.random() * nonSaved.length)];
       setCurrentPost(random);
       setLoadingImage(true);
+      setShowConfetti(true);
     } else {
       setCurrentPost(null);
     }
@@ -75,6 +78,7 @@ const SurprisePage = () => {
     const random = nonSaved[Math.floor(Math.random() * nonSaved.length)];
     setCurrentPost(random);
     setLoadingImage(true);
+    setShowConfetti(true);
   };
 
   const startSparkleAnimation = () => {
@@ -99,6 +103,10 @@ const SurprisePage = () => {
   const sparkleOpacity = sparkleAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [0.3, 1],
+  });
+  const sparkleScale = sparkleAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.8, 1.2], // starts smaller (80%), grows to 120%
   });
 
   const handleCardPress = (
@@ -165,6 +173,18 @@ const SurprisePage = () => {
     <LinearGradient colors={["#E6F0FF", "#FFFFFF"]} style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
+      {/* 🎉 Confetti Cannon */}
+      {showConfetti && (
+        <ConfettiCannon
+          count={80}
+          origin={{ x: width / 2, y: 0 }}
+          fadeOut={true}
+          fallSpeed={3000}
+          explosionSpeed={600}
+          onAnimationEnd={() => setShowConfetti(false)}
+        />
+      )}
+
       {/* Top Bar */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.push("/")}>
@@ -187,7 +207,11 @@ const SurprisePage = () => {
         ].map((style, i) => (
           <Animated.View
             key={i}
-            style={[styles.sparkle, style, { opacity: sparkleOpacity }]}
+            style={[
+              styles.sparkle,
+              style,
+              { opacity: sparkleOpacity, transform: [{ scale: sparkleScale }] },
+            ]}
           />
         ))}
         <Feather name="star" size={60} color="#A9C0FF" style={styles.star1} />
